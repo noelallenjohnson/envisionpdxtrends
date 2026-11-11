@@ -1,0 +1,60 @@
+name: Refresh site data
+
+# Runs on the 5th of every month. In January, April, July and October it pulls the
+# City of Portland permit records and rebuilds the site. In other months it only
+# records a check-in, because GitHub switches off schedules in repositories that
+# see no activity for 60 days.
+on:
+  schedule:
+    - cron: '23 13 5 * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Publish even if totals moved more than expected (type yes)'
+        required: false
+        default: 'no'
+  push:
+    branches: [gh-pages]
+    paths: ['pipeline/*.py', 'pipeline/frozen/**']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Decide what to do
+        id: plan
+        run: |
+          m=$(date -u +%-m)
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$m" != "1" ] && [ "$m" != "4" ] && [ "$m" != "7" ] && [ "$m" != "10" ]; then
+            echo "mode=checkin" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=refresh" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-python@v5
+        if: steps.plan.outputs.mode == 'refresh'
+        with:
+          python-version: '3.12'
+      - name: Pull city records and rebuild the site
+        if: steps.plan.outputs.mode == 'refresh'
+        run: |
+          pip install -q -r pipeline/requirements.txt
+          if [ "${{ github.event.inputs.force }}" = "yes" ]; then python pipeline/refresh.py --force; else python pipeline/refresh.py; fi
+          python pipeline/build_site.py
+      - name: Record the check-in
+        run: date -u +"%Y-%m-%d %H:%M UTC (${{ steps.plan.outputs.mode }})" > pipeline/out/last_run.txt
+      - name: Publish
+        run: |
+          git config user.name "Envision Portland Trends refresh"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "Data refresh: $(cat pipeline/out/last_run.txt)" || echo "Nothing changed"
+          git push

@@ -1,0 +1,239 @@
+"""Envision Portland Trends: page template. All site wording lives in this file.
+Reads pipeline/out/data.json and writes index.html at the top of the repository."""
+import os
+HERE=os.path.dirname(os.path.abspath(__file__))
+D=open(os.path.join(HERE,'out','data.json')).read()
+html=r'''<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Envision Portland Trends</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;600;700&family=Libre+Franklin:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{ /* layout: white page, black slab headings, purple for brand, rules and controls; one reading column with wide figures; single light theme by choice */
+  --purple:#500082; --purple-deep:#280050; --gold:#FFBE0A; --ink:#111; --ink2:#555; --rule:#E4E0E8; --wash:#F6F3F8; --page:#fff;
+  --s75:#7A2FB5; --s14:#A86F00; --s574:#00909A; --band:#EDE9F1; --display:"Zilla Slab",Rockwell,Georgia,serif; --body:"Libre Franklin","Helvetica Neue",Arial,sans-serif; color-scheme:light}
+*{box-sizing:border-box} html{scroll-behavior:smooth}
+body{margin:0;background:var(--page);color:var(--ink);font:400 17px/1.6 var(--body)}
+a{color:var(--purple)} a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+header.top{border-bottom:3px solid var(--purple);position:sticky;top:0;background:var(--page);z-index:5}
+.bar{max-width:1080px;margin:0 auto;padding:12px 20px;display:flex;flex-wrap:wrap;gap:8px 28px;align-items:baseline;justify-content:flex-start}
+.brand{font:700 22px/1.1 var(--display);color:var(--purple);text-decoration:none}
+nav{display:flex;flex-wrap:wrap;gap:4px 18px} nav a{font:500 14px var(--body);text-decoration:none;color:var(--ink)} nav a:hover{color:var(--purple);text-decoration:underline}
+main{max-width:1080px;margin:0 auto;padding:0 20px 80px}
+.hero{padding:52px 0 20px;display:grid;gap:18px}
+.eyebrow{font:600 13px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--purple)}
+h1{font:700 clamp(34px,5.4vw,60px)/1.05 var(--display);color:var(--ink);margin:0;max-width:18ch;text-wrap:balance}
+.lede{font-size:20px;max-width:62ch;margin:0}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0 24px;border-top:3px solid var(--ink);margin:16px 0 4px}
+.tile{padding:16px 0 14px;border-bottom:1px solid var(--rule)} .tile b{display:block;font:700 40px/1 var(--display);color:var(--ink);font-variant-numeric:tabular-nums} .tile span{font-size:14px;color:var(--ink2);display:block;margin-top:6px;max-width:30ch}
+section{padding:40px 0 8px;border-top:1px solid var(--rule);margin-top:34px}
+h2{font:700 clamp(26px,3.4vw,38px)/1.12 var(--display);color:var(--ink);margin:0 0 10px;max-width:26ch;text-wrap:balance}
+h3{font:600 20px/1.25 var(--display);margin:26px 0 6px}
+p{max-width:66ch;margin:0 0 14px} .note{font-size:14px;color:var(--ink2);max-width:80ch}
+figure{margin:22px 0 10px} figcaption{font:600 16px/1.35 var(--body);margin-bottom:4px} .sub{font-size:14px;color:var(--ink2);margin-bottom:10px}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:6px 0 10px}
+.seg{display:inline-flex;border:1px solid var(--purple);border-radius:4px;overflow:hidden} .seg button{font:500 14px var(--body);padding:6px 12px;border:0;background:#fff;color:var(--purple);cursor:pointer} .seg button[aria-pressed=true]{background:var(--purple);color:#fff}
+.tbtn{font:500 14px var(--body);padding:6px 12px;border:1px solid var(--rule);border-radius:4px;background:#fff;cursor:pointer;color:var(--ink)}
+.thr{background:var(--wash);border-left:6px solid var(--purple);padding:14px 18px;margin:18px 0;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;max-width:820px} .thr label{font-weight:600} .thr output{font:700 22px var(--display);min-width:3ch} input[type=range]{accent-color:var(--purple);width:220px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;margin:4px 0 6px} .legend i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.chart{position:relative} svg{display:block;width:100%;height:auto} .ax{font:12px var(--body);fill:var(--ink2)} .grid{stroke:var(--rule)} .lab{font:600 12px var(--body);fill:var(--ink)} .bandl{font:600 11px var(--body);fill:var(--ink2)}
+.tip{position:absolute;pointer-events:none;background:#fff;border:1px solid var(--ink);border-radius:4px;padding:8px 10px;font-size:13px;line-height:1.45;box-shadow:0 4px 14px rgba(40,0,80,.15);min-width:180px;display:none;z-index:3} .tip b{font-family:var(--display);font-size:15px}
+.tw{overflow-x:auto;margin:8px 0} table{border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums;min-width:520px} th,td{padding:6px 12px;border-bottom:1px solid var(--rule);text-align:right} th:first-child,td:first-child{text-align:left;white-space:nowrap} #eras td:nth-child(2),#eras th:nth-child(2){text-align:left} th{font-weight:600;border-bottom:2px solid var(--ink)}
+table.wide td:first-child,table.wide th:first-child{min-width:220px;white-space:normal} table.wide td{vertical-align:top} table.wide td.l,table.wide th:nth-child(2){text-align:left} table.wide td.l{max-width:46ch}
+.who{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;margin:18px 0}
+.who div{border-top:6px solid var(--c);padding-top:10px} .who h3{margin:0 0 4px} .who b{font:700 30px var(--display);font-variant-numeric:tabular-nums} .who p{font-size:15px;margin:6px 0 0}
+.call{background:var(--wash);border-left:6px solid var(--gold);padding:16px 20px;margin:20px 0;max-width:74ch} .call p{margin:0}
+.mapwrap{position:relative;max-width:820px;border:1px solid var(--rule)} canvas{display:block;width:100%;height:auto}
+.yr{font:700 44px/1 var(--display);position:absolute;left:14px;top:10px;color:var(--ink)}
+footer{border-top:3px solid var(--purple);margin-top:56px;padding:22px 0;font-size:14px;color:var(--ink2)}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style></head><body>
+<header class="top"><div class="bar"><nav aria-label="Sections"><a href="#sources">Funding Sources</a><a href="#large">Investable?</a><a href="#where">Where $ Flows</a><a href="#approvals">Macro Shocks</a><a href="#time">City (dis)Approval</a><a href="#overcount">Honest Acctg</a><a href="#method">Method</a><a href="#about">About</a></nav></div></header>
+<main id="top">
+<div class="hero"><div class="eyebrow">This century's housing creation in Portland, Oregon &middot; 2000 to 2026</div>
+<h1>How a city funds housing creation</h1>
+<p class="lede">Housing production is a flow; thus, ratios and rates are the measures.</p>
+<div class="tw" id="ctx"></div>
+<p class="note">Homes are net new homes in completed projects, counted in the year the project was finished. Population: U.S. Census (2000, 2010, 2020) and the Portland State University estimate for 2025. Households: Census 2000 and 2010, and a 2026 private estimate (Esri). A check on the count: the Census reports 28,201 more housing units in Portland in 2010 than in 2000; whereas this dataset finds <span id="chk"></span> net new homes completed over the same years. The reason for the discrepancy is unknown; but affirms the scale and directionality implied by this data, which is through <span class="asof"></span>.</p></div>
+
+<section id="sources"><h2>Funding new homes</h2>
+<p>New homes are funded by different sources of money. The size of a project is one way to understand this.</p>
+<div class="thr"><label for="thr">Institutional investors scale; you can decide where "big money" starts via</label><input type="range" id="thr" min="50" max="100" step="5" value="75"><output id="thrv">75</output><span>homes per project. (Move the slider to reflect your definition; every chart on this page follows it.)</span></div>
+<div class="who" id="who"></div>
+<figure><figcaption>New homes each year, by source of capital</figcaption><div class="sub" id="sub1"></div>
+<div class="ctrl"><div class="seg" role="group" aria-label="Date basis"><button id="b-iss" aria-pressed="true">By year permit issued</button><button id="b-st" aria-pressed="false">By year project applied</button></div><button class="tbtn" data-t="t1">Show table</button></div>
+<div class="legend" id="lg1"></div><div class="chart" id="c1"></div><div class="tw" id="t1" hidden></div></figure>
+<figure><figcaption>Each source's share of new homes, year by year</figcaption><div class="sub">Share of homes permitted, by year permit issued</div>
+<div class="chart" id="c1b"></div></figure>
+<p id="sharetext"></p>
+<p class="note" id="fcnote"></p></section>
+
+<section id="large"><h2>Housing production is now mostly subsidized</h2>
+<p>Institutional-scale projects are funded either by private investors or by public subsidy. Splitting them shows market rate investment forces historically power housing production.</p>
+<figure><figcaption id="cap2"></figcaption><div class="sub">By year the first building permit was issued. Lighter bars are a projection.</div>
+<div class="ctrl"><button class="tbtn" data-t="t2">Show table</button></div>
+<div class="legend" id="lg2"></div><div class="chart" id="c2"></div><div class="tw" id="t2" hidden></div></figure>
+<div class="call"><p id="callout" style="margin-bottom:10px"></p><p id="callout2"></p></div>
+<p class="note">Subsidized means a project receiving state, local bond or federal tax-credit money, or university housing. A market-rate project that includes required inclusionary units is counted as market rate because it is just a tax on higher income renters. Tags for the largest and most recent projects were checked one by one; older and smaller projects rely on matching to public affordable-housing records.</p></section>
+
+<section id="where"><h2>Where new homes are built is always changing</h2>
+<p>Each dot is a project, sized by its number of homes and colored by its source of capital. Move through the years to see which parts of the city each source favoured, and when it left. (Who builds the 'burbs, in the core, proximate to transit, etc.)</p>
+<div class="ctrl"><button class="tbtn" id="play">Play</button><input type="range" id="yr" min="2000" max="2026" step="1" value="2017" aria-label="Year"><div class="seg" role="group" aria-label="Map mode"><button id="m-year" aria-pressed="true">That year only</button><button id="m-cum" aria-pressed="false">Everything so far</button></div></div>
+<div class="legend" id="lg4"></div>
+<div class="mapwrap"><div class="yr" id="yrv">2017</div><canvas id="map" width="1640" height="1456" role="img" aria-label="Map of Portland showing housing projects by year"></canvas></div>
+<p class="note" id="maptext"></p></section>
+
+<section id="approvals"><h2>National recessions reset housing production flows</h2>
+<p>The city's two "gate-keeping" systems - land use &amp; building permit approvals - shrink the total time possible for larger buildings to gain approvals and be funded/built; slower approvals translate to smaller housing production flows.</p>
+<figure><figcaption>Homes approved in design and historic reviews, and how many went on to a building permit</figcaption><div class="sub">By year of land use decision. Shaded: the financial crisis, COVID, and the rise in inflation / rates.</div>
+<div class="ctrl"><button class="tbtn" data-t="t3">Show table</button></div>
+<div class="legend" id="lg3"></div><div class="chart" id="c3"></div><div class="tw" id="t3" hidden></div></figure>
+<div class="tw" id="eras"></div>
+<p id="lutext"></p>
+<p class="note">Cases for 2010 to mid-2020 were transcribed by hand from city records; later cases were read from the written decisions. Cases before 2010 were read by script from the city's short case descriptions and are provisional. A case is linked to a building permit when the decision names the permit or when a permit of similar size was filed on the same site; some real links are missed, so the share lost is an upper estimate. Approvals from the last three years may still proceed.</p></section>
+
+<section id="time"><h2>Getting to a permit takes about three times as long as in 2000</h2>
+<figure><figcaption>Months to reach a building permit</figcaption><div class="sub">Median, by year. Shaded: the same three downturns.</div>
+<div class="ctrl"><button class="tbtn" data-t="t5">Show table</button></div>
+<div class="legend" id="lg5"></div><div class="chart" id="c5"></div><div class="tw" id="t5" hidden></div></figure>
+<p id="durtext"></p></section>
+
+<section id="overcount"><h2>Why the city overstates housing production</h2>
+<p>The city's permit system carries a "new units" figure on each permit, but adding that column up counts homes that were never added. These are the ways it happens, with the number found in the record for 2000 to 2026.</p>
+<div class="tw"><table class="wide"><thead><tr><th>What the record shows</th><th>What actually happened</th><th>Records</th><th>Units or lots</th></tr></thead><tbody>
+<tr><td>Demolish and replace</td><td class="l">A home is torn down and new housing built on the same site. Only the difference is new.</td><td>3,693 projects</td><td>4,604</td></tr>
+<tr><td>Remodel recorded as a new unit</td><td class="l">A kitchen addition or bathroom remodel carries a new-unit figure, though no home is added.</td><td>576 permits</td><td>1,565</td></tr>
+<tr><td>Hotel rooms recorded as units</td><td class="l">New hotels and motels carry a new-unit figure.</td><td>15 permits</td><td>1,057</td></tr>
+<tr><td>Middle housing land divisions</td><td class="l">A land use approval splits an already-permitted fourplex or cottage cluster onto separate lots. The lots are not additional homes.</td><td>237 cases since 2020</td><td>1,026</td></tr>
+<tr><td>Permits that expired</td><td class="l">Units on permits that were never built remain in the record.</td><td>428 permits</td><td>558</td></tr>
+<tr><td>Whole project counted on every permit</td><td class="l">Each townhouse permit in a nine-home project shows nine units.</td><td>42 permits</td><td>206</td></tr>
+<tr><td>Replacement or relocated homes</td><td class="l">Replacement manufactured homes, moved houses and fire rebuilds.</td><td>137 permits</td><td>157</td></tr>
+</tbody></table></div>
+</section>
+
+<section id="method"><h2>About this data</h2>
+<h3>Sources</h3><p>The city has two gatekeeping functions that bottleneck / control housing production flows - land use approvals and building permit approvals. All counts are pulled from the city's official land use decisions - via City Auditor's Efiles archives. For building permit approvals, the City of Portland's public permit records are used via PortlandMaps. Distinction between market rate versus public/subsidized housing production comes from subsidy records of the Oregon Affordable Housing Inventory, Metro's Regulated Affordable Housing Inventory, the Portland Housing Bureau and Oregon Housing and Community Services - cross referenced to the specific building permit for each project.</p>
+<h3>What counts as a new home</h3><p>New construction, conversions of offices and hotels into housing, and homes added inside existing buildings such as accessory dwelling units. Remodels, hotels and replacements do not count. Demos that removed a home to build a new home in its place do not count as adding housing.</p>
+<h3>Projects</h3><p>Because townhouses and subdivisions are approved as one project, but each home holds its own building permit, a 40 meters proximity and 270 days relationship was used to distinguish a discrete development. For example, a 14-home townhouse project counts once, at its real size (instead of as 14 specific, one unit development efforts.)</p>
+<h3>Sources of capital</h3><p>Projects of 1 to 4 homes are typically funded from households with sufficient wealth to do so. Smaller development projects - from 5 homes up to the institutional thresholds - are typically funded by local and regional developers and investor groups. Larger projects at or above the minimum investment scale thresholds, be they rental or for sale, are those funded by institutional investment (or via public capital (i.e. city taxes, regional bond measures, federal low income housing tax credits, etc.))</p>
+<h3>Projection</h3><p>The lighter bars for 2027 and 2028 count only projects already filed and awaiting a permit. They assume household-funded building continues at its recent pace, that between a quarter and 60% of pending mid-sized homes actually manifest into permitted new housing production, that most pending subsidized large projects proceed (60% to 90%), and that few pending market-rate large projects do (none to 25%). Projects not yet filed are not included.</p>
+<h3>Limits</h3><p>Affordable-housing inventories lag by one to three years. Grouping by distance can occasionally join deals or split phases. Of about 17,000 projects, around 550 were reviewed individually; the rest follow the rules above. The characterization of all flows should be understood to be accurate, with reasonable precision and project-level verifications to ensure reliance.</p></section>
+
+<section id="about"><h2>About this housing data visualization project</h2>
+<p>Envision Portland Trends began in the summer of 2020 as an applied study of housing production, city governance and statistics / computer science realms. The effort was funded by Old i, LLC via federal COVID PPP stimulus to create socially helpful learning for Williams College students that also can enable better civic decision making.</p></section>
+<footer>&copy; 2026 Old i, LLC &middot; Data through Nov 2026</footer>
+</main>
+<script>
+const D=__DATA__;
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={big:css('--s75'),small:css('--s14'),mid:css('--s574'),grey:'#B9B2C2'};
+const f=n=>Math.round(n).toLocaleString('en-US'), pct=n=>Math.round(n*100)+'%';
+const $=id=>document.getElementById(id);
+document.querySelectorAll('.asof').forEach(e=>e.textContent=D.asof);
+let T=75, basis='iss';
+const YEARS=[];for(let y=2000;y<=2026;y++)YEARS.push(y);
+const BANDS=[{a:2008,b:2009,label:'Financial crisis'},{a:2020,b:2020,label:'Pandemic'},{a:2022,b:2023,label:'Rates rise'}];
+// project fields: 0 x,1 y,2 year applied,3 year issued,4 gross,5 net,6 subsidy(1 market,2 subsidized),7 expired,8 year completed
+const cls=u=>u<=4?0:(u<T?1:2);
+function agg(){const idx=basis=='iss'?3:2;const A={};YEARS.forEach(y=>A[y]={y,c:[0,0,0],net:0,bm:0,bs:0,bmn:0,bsn:0});
+  D.p.forEach(p=>{if(p[7])return;const a=A[p[idx]];if(!a)return;const k=cls(p[4]);a.c[k]+=p[4];a.net+=p[5];if(k==2){if(p[6]==2){a.bs+=p[4];a.bsn++}else{a.bm+=p[4];a.bmn++}}});return YEARS.map(y=>A[y])}
+function forecast(rows){ // from projects already filed and not yet issued
+  const pend=D.p.filter(p=>!p[7]&&p[3]==0&&p[2]>=2023);const s=[0,0,0,0];pend.forEach(p=>{const k=cls(p[4]);if(k==1)s[1]+=p[4];else if(k==2){if(p[6]==2)s[3]+=p[4];else s[2]+=p[4]}});
+  const small=(rows[23].c[0]+rows[24].c[0]+rows[25].c[0])/3;const sp=[[2027,.6],[2028,.4]];
+  return sp.map(([y,w])=>{const lo=[small*.85,s[1]*.25*w,(s[3]*.6)*w],hi=[small*1.1,s[1]*.6*w,(s[3]*.9+s[2]*.25)*w];const mid=lo.map((v,i)=>(v+hi[i])/2);
+    return {y,fc:true,c:mid,lo:lo.reduce((a,b)=>a+b,0),hi:hi.reduce((a,b)=>a+b,0),bm:s[2]*.125*w,bs:s[3]*.75*w,bmlo:0,bmhi:s[2]*.25*w,bslo:s[3]*.6*w,bshi:s[3]*.9*w,pend:s}})}
+function legend(id,items){$(id).innerHTML=items.map(i=>`<span><i style="background:${i[1]}${i[2]?';opacity:.4':''}"></i>${i[0]}</span>`).join('')}
+function tipOn(el,tip,e,html){tip.innerHTML=html;tip.style.display='block';const b=el.getBoundingClientRect();let x=e.clientX-b.left+14;if(x>b.width-210)x=e.clientX-b.left-210;tip.style.left=x+'px';tip.style.top=(e.clientY-b.top-10)+'px'}
+function bands(xOf,bw,m,ih,W){return BANDS.map(b=>{const x0=xOf(b.a),x1=xOf(b.b)+bw;if(x0==null)return '';return `<rect x="${x0}" y="${m.t}" width="${x1-x0}" height="${ih}" fill="var(--band)"/><text class="bandl" x="${(x0+x1)/2}" y="${m.t+11}" text-anchor="middle">${b.label}</text>`}).join('')}
+function stacked(el,rows,series,opt={}){
+  const W=1040,H=380,m={l:54,r:14,t:18,b:34},iw=W-m.l-m.r,ih=H-m.t-m.b,n=rows.length,bw=iw/n;
+  const max=Math.max(...rows.map(r=>Math.max(r.vals.reduce((a,b)=>a+b,0),r.hi||0)));const step=max>6000?2000:max>2500?1000:max>1200?500:250,top=Math.ceil(max/step)*step,y=v=>m.t+ih-(v/top)*ih;
+  const xOf=yr=>{const i=rows.findIndex(r=>r.y==yr);return i<0?null:m.l+i*bw};
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${opt.label||''}">`;if(opt.bands)s+=bands(xOf,bw,m,ih,W);
+  for(let v=0;v<=top;v+=step){s+=`<line class="grid" x1="${m.l}" x2="${W-m.r}" y1="${y(v)}" y2="${y(v)}"/><text class="ax" x="${m.l-8}" y="${y(v)+4}" text-anchor="end">${f(v)}</text>`}
+  rows.forEach((r,i)=>{let acc=0;const x=m.l+i*bw+bw*0.16,w=bw*0.68;
+    r.vals.forEach((v,j)=>{if(v<=0)return;const y0=y(acc),y1=y(acc+v);acc+=v;const h=Math.max(y0-y1-2,1);s+=`<rect x="${x}" y="${y1}" width="${w}" height="${h}" rx="${r.vals.slice(j+1).every(z=>z<=0)?3:0}" fill="${series[j].color}"${r.fc?' opacity=".38"':(r.partial?' opacity=".6"':'')}/>`});
+    if(r.fc&&r.hi!=null){const cx=x+w/2;s+=`<line x1="${cx}" x2="${cx}" y1="${y(r.lo)}" y2="${y(r.hi)}" stroke="var(--ink)" stroke-width="1.5"/><line x1="${cx-5}" x2="${cx+5}" y1="${y(r.hi)}" y2="${y(r.hi)}" stroke="var(--ink)" stroke-width="1.5"/><line x1="${cx-5}" x2="${cx+5}" y1="${y(r.lo)}" y2="${y(r.lo)}" stroke="var(--ink)" stroke-width="1.5"/>`}
+    if(i%2==0||n<20)s+=`<text class="ax" x="${m.l+i*bw+bw/2}" y="${H-12}" text-anchor="middle">${r.y}${r.partial?'*':''}</text>`;
+    if(opt.mark&&opt.mark(r))s+=`<text class="lab" x="${m.l+i*bw+bw/2}" y="${y(acc)-6}" text-anchor="middle">${opt.mark(r)}</text>`;
+    s+=`<rect data-i="${i}" x="${m.l+i*bw}" y="${m.t}" width="${bw}" height="${ih}" fill="transparent"/>`});
+  const fi=rows.findIndex(r=>r.fc);if(fi>0){const fx=m.l+fi*bw;s+=`<line x1="${fx}" x2="${fx}" y1="${m.t}" y2="${m.t+ih}" stroke="var(--ink2)" stroke-dasharray="4 4"/><text class="bandl" x="${fx+6}" y="${m.t+11}">Projection</text>`}
+  s+=`</svg><div class="tip"></div>`;el.innerHTML=s;const tip=el.querySelector('.tip');
+  el.querySelectorAll('rect[data-i]').forEach(rc=>{rc.addEventListener('mousemove',e=>{const r=rows[+rc.dataset.i],tot=r.vals.reduce((a,b)=>a+b,0);tipOn(el,tip,e,`<b>${r.y}${r.fc?' (projection)':(r.partial?' (partial year)':'')}</b><br>`+series.map((sr,j)=>`<i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${sr.color};margin-right:6px"></i>${sr.name}: <strong>${f(r.vals[j])}</strong>`).join('<br>')+`<br>Total: <strong>${f(tot)}</strong>`+(r.fc&&r.hi!=null?`<br>Range: ${f(r.lo)} to ${f(r.hi)}`:'')+(r.extra?'<br>'+r.extra:''))});rc.addEventListener('mouseleave',()=>tip.style.display='none')})}
+function lines(el,years,series,opt={}){
+  const W=1040,H=340,m={l:54,r:200,t:18,b:34},iw=W-m.l-m.r,ih=H-m.t-m.b,n=years.length,bw=iw/n;const all=series.flatMap(s=>s.v.filter(v=>v!=null));
+  const top=opt.top||Math.ceil(Math.max(...all)/(opt.step||5))*(opt.step||5),step=opt.step||5,y=v=>m.t+ih-(v/top)*ih,x=i=>m.l+i*bw+bw/2;const xOf=yr=>{const i=years.indexOf(yr);return i<0?null:m.l+i*bw};
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${opt.label||''}">`;if(opt.bands)s+=bands(xOf,bw,m,ih,W);
+  for(let v=0;v<=top+1e-9;v+=step){s+=`<line class="grid" x1="${m.l}" x2="${W-m.r}" y1="${y(v)}" y2="${y(v)}"/><text class="ax" x="${m.l-8}" y="${y(v)+4}" text-anchor="end">${opt.fmt?opt.fmt(v):v}</text>`}
+  years.forEach((yr,i)=>{if(i%2==0)s+=`<text class="ax" x="${x(i)}" y="${H-12}" text-anchor="middle">${yr}</text>`});
+  const ends=[];series.forEach(sr=>{let d='',pen=false;sr.v.forEach((v,i)=>{if(v==null){pen=false;return}d+=(pen?'L':'M')+x(i)+' '+y(v);pen=true});s+=`<path d="${d}" fill="none" stroke="${sr.color}" stroke-width="2.5" stroke-linejoin="round"/>`;let li=sr.v.length-1;while(li>0&&sr.v[li]==null)li--;s+=`<circle cx="${x(li)}" cy="${y(sr.v[li])}" r="4.5" fill="${sr.color}" stroke="#fff" stroke-width="2"/>`;ends.push({y:y(sr.v[li]),name:sr.name,val:sr.v[li]})});
+  ends.sort((a,b)=>a.y-b.y);for(let i=1;i<ends.length;i++)if(ends[i].y-ends[i-1].y<30)ends[i].y=ends[i-1].y+30;
+  ends.forEach(e=>{s+=`<text class="lab" x="${W-m.r+10}" y="${e.y-2}">${e.name}</text><text class="ax" x="${W-m.r+10}" y="${e.y+13}">${opt.fmt?opt.fmt(e.val):e.val}</text>`});
+  s+=`<line id="xh" y1="${m.t}" y2="${m.t+ih}" stroke="var(--ink2)" stroke-width="1" visibility="hidden"/><rect class="hit" x="${m.l}" y="${m.t}" width="${iw}" height="${ih}" fill="transparent"/></svg><div class="tip"></div>`;el.innerHTML=s;
+  const tip=el.querySelector('.tip'),hit=el.querySelector('.hit'),xh=el.querySelector('#xh'),svg=el.querySelector('svg');
+  hit.addEventListener('mousemove',e=>{const b=svg.getBoundingClientRect(),px=(e.clientX-b.left)/b.width*W,i=Math.max(0,Math.min(n-1,Math.floor((px-m.l)/bw)));xh.setAttribute('x1',x(i));xh.setAttribute('x2',x(i));xh.setAttribute('visibility','visible');tipOn(el,tip,e,`<b>${years[i]}</b><br>`+series.map(sr=>`<i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${sr.color};margin-right:6px"></i>${sr.name}: <strong>${sr.v[i]==null?'no data':(opt.fmt?opt.fmt(sr.v[i]):sr.v[i])}</strong>`).join('<br>'))});
+  hit.addEventListener('mouseleave',()=>{tip.style.display='none';xh.setAttribute('visibility','hidden')})}
+function table(id,head,rows){$(id).innerHTML='<table><thead><tr>'+head.map(h=>`<th>${h}</th>`).join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map((c,i)=>`<td>${i&&typeof c=='number'?f(c):c??''}</td>`).join('')+'</tr>').join('')+'</tbody></table>'}
+document.querySelectorAll('.tbtn[data-t]').forEach(b=>b.addEventListener('click',()=>{const t=$(b.dataset.t);t.hidden=!t.hidden;b.textContent=t.hidden?'Show table':'Hide table'}));
+// ---- context tiles (independent of threshold)
+(function(){const comp=(a,b)=>D.p.filter(p=>p[8]>=a&&p[8]<=b).reduce((s,p)=>s+p[5],0);const P=D.pop;
+  const h1=comp(2000,2009),h2=comp(2010,2019),h3=comp(2020,2025),h4=comp(2010,2026);const d1=P.p2010-P.p2000,d2=P.p2020-P.p2010,d3=P.p2025-P.p2020;
+  $('chk').textContent=f(h1);
+  table('ctx',['Period','Net new homes completed','Change in population','Homes per 100 added residents','Change in households','Homes per added household'],[['2000 to 2010',h1,d1,Math.round(h1/d1*100),P.h2010-P.h2000,(h1/(P.h2010-P.h2000)).toFixed(2)],['2010 to 2020',h2,d2,Math.round(h2/d2*100),'',''],['2020 to 2025',h3,d3,'population fell','',''],['2010 to 2026',h4,'','',P.h2026-P.h2010,(h4/(P.h2026-P.h2010)).toFixed(2)]])})();
+// ---- threshold-dependent
+function render(){
+  $('thrv').textContent=T;const rows=agg(),iss=(basis=='iss')?rows:(()=>{const b=basis;basis='iss';const r=agg();basis=b;return r})();
+  const tot=iss.reduce((a,r)=>a+r.c[0]+r.c[1]+r.c[2],0),sh=[0,1,2].map(k=>iss.reduce((a,r)=>a+r.c[k],0)/tot);
+  const NM=['Wealthy Households','Local / Regional Wealth','Institutional / Public Capital Allocation'],RG=['1 to 4 units','5 to '+(T-1)+' units',T+' or more units'],CL=[C.small,C.mid,C.big];
+  $('who').innerHTML=[0,1,2].map(k=>`<div style="--c:${CL[k]}"><h3>${NM[k]}</h3><b>${pct(sh[k])}</b> of homes since 2000<p>${['Projects typically of '+RG[0]+' via detached homes, accessory dwelling units and small "plexes."','Projects typically of '+RG[1]+'. Smaller apartment and townhouse developments.','Projects typically of '+RG[2]+'. Larger apartment buildings and subdivisions.'][k]}</p></div>`).join('');
+  const S1=[0,1,2].map(k=>({name:NM[k]+' ('+RG[k]+')',color:CL[k]}));legend('lg1',S1.map(s=>[s.name,s.color]).concat(basis=='iss'?[['Projection from projects already filed','#777',1]]:[]));
+  const fc=forecast(iss);let r1=rows.map(r=>({y:r.y,vals:r.c,partial:r.y==2026}));if(basis=='iss')r1=r1.concat(fc.map(r=>({y:r.y,vals:r.c,fc:true,lo:r.lo,hi:r.hi})));
+  $('sub1').textContent=basis=='iss'?'Homes in projects by year the first permit was issued, before demolitions. Lighter bars are a projection based on city\'s land use approval system.':'Homes in projects by year the project applied, before demolitions.';
+  stacked($('c1'),r1,S1,{label:'New homes by year and source of capital',bands:true});
+  table('t1',['Year',RG[0],RG[1],RG[2],'Total','Net of demolitions'],rows.map(r=>[r.y+(r.y==2026?'*':''),r.c[0],r.c[1],r.c[2],r.c[0]+r.c[1]+r.c[2],r.net]));
+  lines($('c1b'),YEARS,[0,1,2].map(k=>({name:['Wealthy Households','Local / Regional','Institutional / Public'][k],color:CL[k],v:iss.map(r=>{const t=r.c[0]+r.c[1]+r.c[2];return t?Math.round(r.c[k]/t*100):null})})),{top:80,step:20,fmt:v=>v+'%',bands:true,label:'Share of homes by source of capital'});
+  const era=(a,b,k)=>{const rr=iss.filter(r=>r.y>=a&&r.y<=b),t=rr.reduce((s,r)=>s+r.c[0]+r.c[1]+r.c[2],0);return rr.reduce((s,r)=>s+r.c[k],0)/t};
+  $('sharetext').innerHTML=`Housing production mix changes; for example, in 2014 to 2019, larger projects created <strong>${pct(era(2014,2019,2))}</strong> of new homes, while local households created <strong>${pct(era(2014,2019,0))}</strong>. But today, from 2024 to 2026 the institutional share is <strong>${pct(era(2024,2026,2))}</strong>. Thus, households and locals together fund <strong>${pct(era(2024,2026,0)+era(2024,2026,1))}</strong> of a smaller housing production flow. Note how household-funded building is fairly steady through booms and recessions as it is non-market in nature.`;
+  const pd=fc[0].pend;$('fcnote').textContent=`Projection: ${f(pd[1])} homes in mid-sized projects, ${f(pd[3])} in subsidized large projects and ${f(pd[2])} in market-rate large projects have applied since 2023 and await a permit. The lighter bars show a middle estimate of how many are permitted in 2027 and 2028, with a range. See Method.`;
+  // large
+  $('cap2').textContent=`Homes in projects of ${T} or more, by funding`;const S2=[{name:'Market rate',color:C.big},{name:'Subsidized',color:C.small}];legend('lg2',S2.map(s=>[s.name,s.color]));
+  stacked($('c2'),iss.map(r=>({y:r.y,vals:[r.bm,r.bs],partial:r.y==2026,extra:`Projects: ${r.bmn} market rate, ${r.bsn} subsidized`})).concat(fc.map(r=>({y:r.y,vals:[r.bm,r.bs],fc:true,lo:r.bmlo+r.bslo,hi:r.bmhi+r.bshi}))),S2,{label:'Large projects by funding',mark:r=>(!r.fc&&r.y==2025&&r.vals[0]==0)?'No market-rate permits':'',bands:true});
+  table('t2',['Year','Market rate: homes','Subsidized: homes','Market rate: projects','Subsidized: projects'],iss.map(r=>[r.y+(r.y==2026?'*':''),r.bm,r.bs,r.bmn,r.bsn]));
+  let last=null;D.p.forEach(p=>{if(!p[7]&&p[3]&&cls(p[4])==2&&p[6]!=2&&(!last||p[3]>last))last=p[3]});const since=iss.filter(r=>r.y>last),sN=since.reduce((a,r)=>a+r.bsn,0),sU=since.reduce((a,r)=>a+r.bs,0),bm=iss.reduce((a,r)=>a+r.bm,0),bs=iss.reduce((a,r)=>a+r.bs,0);
+  $('callout').innerHTML=last>=2026?`Market-rate projects of ${T} or more homes are still reaching permits in 2026 under this definition.`:`<strong>No market-rate project of ${T} or more homes has received a building permit since ${last}.</strong> From ${last+1} through 2026 to date, every project of that size to reach a permit was affordable / income restricted (i.e. subsidized by taxpayers): ${sN} projects with ${f(sU)} homes.`;
+  $('callout2').innerHTML=`Since 2000, large market-rate projects supplied ${f(bm)} homes and large subsidized projects ${f(bs)}.`;
+  drawMap()}
+$('thr').addEventListener('input',e=>{T=+e.target.value;render()});
+[['b-iss','iss'],['b-st','st']].forEach(([id,key])=>$(id).addEventListener('click',()=>{basis=key;$('b-iss').setAttribute('aria-pressed',key=='iss');$('b-st').setAttribute('aria-pressed',key=='st');render()}));
+// ---- map
+let mapYear=2017,mapCum=false,timer=null;const cv=$('map'),cx=cv.getContext('2d');
+function poly(r,sx,sy){cx.beginPath();r.forEach((p,i)=>{i?cx.lineTo(p[0]*sx,p[1]*sy):cx.moveTo(p[0]*sx,p[1]*sy)});cx.closePath()}
+function drawMap(){const W=cv.width,H=cv.height,sx=W/1000,sy=H/1000;cx.clearRect(0,0,W,H);cx.fillStyle='#FAF9FB';cx.fillRect(0,0,W,H);
+  cx.fillStyle='#fff';cx.strokeStyle='#9A93A3';cx.lineWidth=2;D.b.forEach(r=>{poly(r,sx,sy);cx.fill();cx.stroke()});
+  cx.fillStyle='#D5E3EC';D.w.forEach(r=>{poly(r,sx,sy);cx.fill()});
+  const line=(ps,col,w,dash)=>{cx.strokeStyle=col;cx.lineWidth=w;cx.lineJoin='round';cx.lineCap=dash?'butt':'round';cx.setLineDash(dash||[]);ps.forEach(p=>{cx.beginPath();p.forEach((q,i)=>{i?cx.lineTo(q[0]*sx,q[1]*sy):cx.moveTo(q[0]*sx,q[1]*sy)});cx.stroke()})};line(D.mx,'#fff',7);line(D.mx,'#0B5D1E',4,[5,6]);line(D.fw,'#fff',7);line(D.fw,'#111',3.5);cx.setLineDash([]);
+  const CL=[C.small,C.mid,C.big];const pts=D.p.filter(p=>!p[7]&&p[3]&&p[0]>=0&&(mapCum?p[3]<=mapYear:p[3]==mapYear)).sort((a,b)=>b[4]-a[4]);const n=[0,0,0];
+  pts.forEach(p=>{const k=cls(p[4]);n[k]+=p[4];const r=Math.max(2.2,Math.sqrt(p[4])*1.7);cx.beginPath();cx.arc(p[0]*sx,p[1]*sy,r,0,6.2832);cx.globalAlpha=mapCum&&p[3]<mapYear?0.28:0.8;cx.fillStyle=CL[k];cx.fill();cx.globalAlpha=1;if(r>5){cx.strokeStyle='#fff';cx.lineWidth=1.5;cx.stroke()}});
+  $('yrv').textContent=mapYear;$('yr').value=mapYear;
+  $('maptext').textContent=(mapCum?`Through ${mapYear}: `:`${mapYear}: `)+`${f(n[0])} homes from household wealth, ${f(n[1])} from local and regional capital, ${f(n[2])} from institutional and public capital. Dots are placed at the project's permit address. Outline: Portland city limits; blue: rivers; black: interstates and US 26; dotted dark green: MAX light rail as it runs today.`}
+legend('lg4',[['Wealthy Households',C.small],['Local / Regional Wealth',C.mid],['Institutional / Public Capital Allocation',C.big]]);$('lg4').innerHTML+='<span><i style="background:#111;height:4px;width:22px;vertical-align:3px"></i>I-5, I-84, I-205, I-405 and US 26 west</span><span><i style="background:repeating-linear-gradient(90deg,#0B5D1E 0 4px,transparent 4px 8px);height:4px;width:24px;vertical-align:3px;border-radius:0"></i>MAX light rail</span>';
+$('yr').addEventListener('input',e=>{mapYear=+e.target.value;drawMap()});
+[['m-year',false],['m-cum',true]].forEach(([id,v])=>$(id).addEventListener('click',()=>{mapCum=v;$('m-year').setAttribute('aria-pressed',!v);$('m-cum').setAttribute('aria-pressed',v);drawMap()}));
+$('play').addEventListener('click',()=>{if(timer){clearInterval(timer);timer=null;$('play').textContent='Play';return}$('play').textContent='Pause';if(mapYear>=2026)mapYear=1999;timer=setInterval(()=>{mapYear++;drawMap();if(mapYear>=2026){clearInterval(timer);timer=null;$('play').textContent='Play'}},700)});
+// ---- approvals and duration (independent of threshold)
+(function(){const L=D.lu,yrs=[];for(let y=2002;y<=2026;y++)yrs.push(y);const by={};L.forEach(r=>by[r.y]=r);
+  const S3=[{name:'Went on to a building permit',color:C.mid},{name:'No permit issued so far',color:C.grey}];legend('lg3',S3.map(s=>[s.name,s.color]));
+  stacked($('c3'),yrs.map(y=>{const r=by[y]||{units:0,perm:0,cases:0,cp:0,mo:null};return {y,vals:[r.perm,r.units-r.perm],partial:y>=2024,extra:`${r.cp} of ${r.cases} approvals permitted`+(y<2010?'<br>Provisional':'')}}),S3,{label:'Homes approved and share reaching a permit',bands:true});
+  table('t3',['Decision year','Homes approved','Reached a permit','Approvals','Approvals permitted'],L.map(r=>[r.y+(r.y>=2024?'*':(r.y<2010?' (provisional)':'')),r.units,r.perm,r.cases,r.cp]));
+  const E=[['2002 to 2004','Approved well before the financial crisis',2002,2004],['2005 to 2007','Approved in the run-up to the financial crisis',2005,2007],['2008 to 2009','Approved during the financial crisis',2008,2009],['2010 to 2016','Recovery and expansion',2010,2016],['2017 to 2019','Approved in the run-up to the pandemic',2017,2019],['2020 to 2021','Approved during the pandemic',2020,2021],['2022 to 2023','Approved as interest rates rose',2022,2023]];
+  const er=E.map(e=>{const rr=L.filter(r=>r.y>=e[2]&&r.y<=e[3]),u=rr.reduce((a,r)=>a+r.units,0),p=rr.reduce((a,r)=>a+r.perm,0);return [e[0],e[1],u,p,u-p,pct(p/u)]});
+  table('eras',['Decisions made','Period','Homes approved','Reached a permit','Lost or stalled','Share reaching a permit'],er);
+  $('lutext').innerHTML=`Each downturn leaves a gap. Approvals that do proceed typically take about 10 months to reach a permit and roughly two more years to build, so today's approvals point to homes about three years out.`;
+  const dy=[];for(let y=2000;y<=2026;y++)dy.push(y);const dm={};D.dur.forEach(r=>dm[r.y]=r.m);
+  const S5=[{name:'Application to permit',color:C.big,v:dy.map(y=>dm[y]??null)},{name:'Land use decision to permit',color:C.mid,v:dy.map(y=>by[y]&&by[y].mo!=null&&by[y].cp>=4?by[y].mo:null)}];legend('lg5',S5.map(s=>[s.name+(s.name[0]=='A'?' (projects of 5+ homes, by year issued)':' (by year of decision)'),s.color]));
+  lines($('c5'),dy,S5,{step:5,fmt:v=>v+' mo',bands:true,label:'Months to reach a building permit'});
+  table('t5',['Year','Permit application to permit, median months','Land use decision to permit, median months'],dy.map(y=>[y,dm[y]??'',by[y]&&by[y].mo!=null&&by[y].cp>=4?by[y].mo:'']));
+  $('durtext').innerHTML=`For projects of five or more homes, the median time from applying for a building permit to receiving it was <strong>${dm[2000]} months in 2000</strong>, about ${dm[2010]} in 2010 and <strong>${dm[2025]} months in 2025</strong>. It has stayed near ${Math.round((dm[2021]+dm[2022]+dm[2023]+dm[2024]+dm[2025])/5)} months since 2021.`})();
+render();
+</script></body></html>'''
+open(os.path.join(HERE,'..','index.html'),'w').write(html.replace('__DATA__',D)); print('index.html written',len(html))
