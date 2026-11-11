@@ -42,6 +42,7 @@ table.wide td:first-child,table.wide th:first-child{min-width:220px;white-space:
 .yr{font:700 44px/1 var(--display);position:absolute;left:14px;top:10px;color:var(--ink)}
 footer{border-top:3px solid var(--purple);margin-top:56px;padding:22px 0;font-size:14px;color:var(--ink2)}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media (max-width:700px){.chart{overflow-x:auto;-webkit-overflow-scrolling:touch} .chart svg{width:760px;max-width:none} figure .sub::after{content:" Swipe the chart sideways to see earlier years.";font-style:italic} #eras td:nth-child(2),#eras th:nth-child(2){min-width:190px} table{font-size:13px} th,td{padding:6px 9px}}
 </style></head><body>
 <header class="top"><div class="bar"><nav aria-label="Sections"><a href="#sources">Funding Sources</a><a href="#large">Investable?</a><a href="#where">Where $ Flows</a><a href="#approvals">Macro Shocks</a><a href="#time">City (dis)Approval</a><a href="#overcount">Honest Acctg</a><a href="#method">Method</a><a href="#about">About</a></nav></div></header>
 <main id="top">
@@ -230,4 +231,5 @@ $('play').addEventListener('click',()=>{if(timer){clearInterval(timer);timer=nul
   table('t5',['Year','Permit application to permit, median months','Land use decision to permit, median months'],dy.map(y=>[y,dm[y]??'',by[y]&&by[y].mo!=null&&by[y].cp>=4?by[y].mo:'']));
   $('durtext').innerHTML=`For projects of five or more homes, the median time from applying for a building permit to receiving it was <strong>${dm[2000]} months in 2000</strong>, about ${dm[2010]} in 2010 and <strong>${dm[2025]} months in 2025</strong>. It has stayed near ${Math.round((dm[2021]+dm[2022]+dm[2023]+dm[2024]+dm[2025])/5)} months since 2021.`})();
 render();
+if(innerWidth<=700)document.querySelectorAll('.chart').forEach(c=>c.scrollLeft=c.scrollWidth);
 </script></body></html>
