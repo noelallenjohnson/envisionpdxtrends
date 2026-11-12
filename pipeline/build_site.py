@@ -98,10 +98,10 @@ footer{border-top:3px solid var(--purple);margin-top:56px;padding:22px 0;font-si
 <div class="ctrl"><button class="tbtn" data-t="t5">Show table</button></div>
 <div class="legend" id="lg5"></div><div class="chart" id="c5"></div><div class="tw" id="t5" hidden></div></figure>
 <p id="durtext"></p>
-<figure><figcaption>How long projects waited for a building permit, year by year</figcaption><div class="sub wait">Share of each size's projects by months from permit application to first permit issued, for permits issued in the selected year. Press Play to watch the waits lengthen.</div>
+<figure><figcaption>How long projects waited for a building permit, year by year</figcaption><div class="sub wait">Excludes wait times from gaining land use (design / zoning) approval; those add 6 to 12 months.  Building permit times are from application to first permit issued. Press Play to watch the waits lengthen.</div>
 <div class="ctrl"><button class="tbtn" id="dplay">Play</button><input type="range" id="dyr" min="2000" max="2026" step="1" value="2025" aria-label="Year permit issued"><button class="tbtn" data-t="t6">Show table</button></div>
 <div class="chart keepleft" id="c6"></div><div class="tw" id="t6" hidden></div></figure>
-<p class="note">Bars show the share of that size's projects issued a permit that year; the count is given at the right of each panel, and some years have only a handful of large projects. The last bar holds every wait of 30 months or more. The dashed line marks the median in 2000. Records begin in January 2000, so permits issued in 2000 and 2001 cannot show waits longer than one to two years. 2026 is a partial year.</p></section>
+<p class="note">Bars show the share of that size's projects issued a permit that year; the count is given at the right of each panel, and some years have only a handful of large projects. The last bar holds every wait of 30 months or more. The dashed lines mark the medians for the normal, higher volume housing production years. Records begin in January 2000, so permits issued in 2000 and 2001 cannot show waits longer than one to two years. 2026 is a partial year.</p></section>
 
 <section id="overcount"><h2>Why the city overstates housing production</h2>
 <p>The city's permit system carries a "new units" figure on each permit, but adding that column up counts homes that were never added. These are the ways it happens, with the number found in the record for 2000 to 2026.</p>
@@ -226,7 +226,7 @@ $('yr').addEventListener('input',e=>{mapYear=+e.target.value;drawMap()});
 [['m-year',false],['m-cum',true]].forEach(([id,v])=>$(id).addEventListener('click',()=>{mapCum=v;$('m-year').setAttribute('aria-pressed',!v);$('m-cum').setAttribute('aria-pressed',v);drawMap()}));
 $('play').addEventListener('click',()=>{if(timer){clearInterval(timer);timer=null;$('play').textContent='Play';return}$('play').textContent='Pause';if(mapYear>=2026)mapYear=1999;timer=setInterval(()=>{mapYear++;drawMap();if(mapYear>=2026){clearInterval(timer);timer=null;$('play').textContent='Play'}},700)});
 // ---- distribution of permit waits, by year and project size (follows the threshold)
-let dYear=2025,dTimer=null,dA=null,dS=null,dCur=null,dRaf=0;const NB=16,BINW=2; // 2-month bins; the last holds 30+
+let dYear=2025,dTimer=null,dA=null,dS=null,dCur=null,dRaf=0;const NB=16,BINW=2,REFY=[2007,2016,2022]; // 2-month bins; the last holds 30+. REFY: years whose medians are drawn as dashed reference lines
 function distData(){const A={};YEARS.forEach(y=>A[y]={h:[0,1,2].map(()=>Array(NB).fill(0)),v:[[],[],[]]});
   D.p.forEach(p=>{if(p[9]<0||!A[p[3]])return;const k=cls(p[4]);A[p[3]].h[k][Math.min(NB-1,Math.floor(p[9]/BINW))]++;A[p[3]].v[k].push(p[9])});
   const med=a=>{if(!a.length)return null;a.sort((x,y)=>x-y);const m=a.length>>1;return a.length%2?a[m]:(a[m-1]+a[m])/2};
@@ -242,7 +242,7 @@ function drawDist(rebuild){const el=$('c6');
       s+=`<rect x="${m.l}" y="${y0-HD+9}" width="12" height="12" rx="2" fill="${CL[k]}"/><text class="lab" x="${m.l+19}" y="${y0-HD+20}" style="font-size:14px">${NM[k]} (${RG[k]})</text><text class="ax" id="ds${k}" x="${W-m.r}" y="${y0-HD+20}" text-anchor="end" style="font-size:13px"></text>`;
       for(let v=0;v<=tp.top+1e-9;v+=tp.st){const yy=y0+PH-(v/tp.top)*PH;s+=`<line class="grid" x1="${m.l}" x2="${W-m.r}" y1="${yy}" y2="${yy}"/><text class="ax" x="${m.l-8}" y="${yy+4}" text-anchor="end">${Math.round(v*100)}%</text>`}
       for(let i=0;i<NB;i++)s+=`<rect id="db${k}_${i}" x="${m.l+i*bw+1}" width="${bw-2}" y="${y0+PH}" height="0" rx="3" fill="${CL[k]}"/>`;
-      s+=`<line id="dr${k}" y1="${y0}" y2="${y0+PH}" stroke="var(--ink2)" stroke-width="1.5" stroke-dasharray="4 4"/><text class="bandl" id="drl${k}" y="${y0+11}">2000</text>`;
+      REFY.forEach((ry,j)=>{s+=`<line id="dr${k}_${j}" y1="${y0}" y2="${y0+PH}" stroke="var(--ink2)" stroke-width="1.5" stroke-dasharray="4 4"/><text class="bandl" id="drl${k}_${j}" y="${y0+26+j*13}">${ry}</text>`});
       s+=`<line id="dm${k}" y1="${y0-4}" y2="${y0+PH}" stroke="var(--ink)" stroke-width="2.5"/><text class="lab" id="dml${k}" y="${y0+11}"></text>`;
       s+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y0+PH}" y2="${y0+PH}" stroke="var(--ink2)"/>`;
       for(let i=0;i<NB;i++)s+=`<rect data-k="${k}" data-i="${i}" x="${m.l+i*bw}" y="${y0}" width="${bw}" height="${PH}" fill="transparent"/>`});
@@ -251,10 +251,10 @@ function drawDist(rebuild){const el=$('c6');
     s+=`<text id="dyv" x="${W-m.r}" y="${py(0)+52}" text-anchor="end" style="font:700 44px var(--display);fill:var(--ink)"></text></svg><div class="tip"></div>`;
     el.innerHTML=s;dS={tops};dCur=null;const tip=el.querySelector('.tip');
     el.querySelectorAll('rect[data-k]').forEach(rc=>{rc.addEventListener('mousemove',e=>{const k=+rc.dataset.k,i=+rc.dataset.i,a=dA[dYear],c=a.h[k][i];tipOn(el,tip,e,`<b>${dYear}: ${i==NB-1?'30 months or more':i*BINW+' to '+(i+1)*BINW+' months'}</b><br><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${CL[k]};margin-right:6px"></i>${NM[k]}: <strong>${f(c)}</strong> project${c==1?'':'s'}`+(a.n[k]?` (${pct(c/a.n[k])})`:'')+(a.med[k]!=null?`<br>Median wait: <strong>${a.med[k].toFixed(1)} months</strong>`:''))});rc.addEventListener('mouseleave',()=>tip.style.display='none')})}
-  const a=dA[dYear],ref=dA[2000],tgt={h:a.h.map((r,k)=>r.map(c=>a.n[k]?c/a.n[k]/dS.tops[k].top*PH:0)),med:a.med.map(v=>v==null?null:xm(v))};
+  const a=dA[dYear],tgt={h:a.h.map((r,k)=>r.map(c=>a.n[k]?c/a.n[k]/dS.tops[k].top*PH:0)),med:a.med.map(v=>v==null?null:xm(v))};
   $('dyv').textContent=dYear+(dYear==2026?'*':'');$('dyr').value=dYear;
   [0,1,2].forEach(k=>{$('ds'+k).textContent=a.n[k]?`${f(a.n[k])} project${a.n[k]==1?'':'s'} · median ${a.med[k].toFixed(1)} months`:'No permits issued';
-    const rx=ref.med[k]==null||dYear==2000?null:xm(ref.med[k]);['dr'+k,'drl'+k].forEach(id=>$(id).setAttribute('visibility',rx==null?'hidden':'visible'));if(rx!=null){$('dr'+k).setAttribute('x1',rx);$('dr'+k).setAttribute('x2',rx);$('drl'+k).setAttribute('x',rx-5);$('drl'+k).setAttribute('text-anchor','end')}});
+    REFY.forEach((ry,j)=>{const mv=dA[ry].med[k],rx=mv==null||dYear==ry?null:xm(mv),ln=$('dr'+k+'_'+j),lb=$('drl'+k+'_'+j);[ln,lb].forEach(e=>e.setAttribute('visibility',rx==null?'hidden':'visible'));if(rx!=null){ln.setAttribute('x1',rx);ln.setAttribute('x2',rx);lb.setAttribute('x',rx+5);lb.setAttribute('text-anchor','start')}})});
   const put=st=>{[0,1,2].forEach(k=>{const y0=py(k);st.h[k].forEach((h,i)=>{const b=$('db'+k+'_'+i);b.setAttribute('y',y0+PH-h);b.setAttribute('height',Math.max(h,0))});
     const ln=$('dm'+k),lb=$('dml'+k),x=st.med[k];ln.setAttribute('visibility',x==null?'hidden':'visible');lb.setAttribute('visibility',x==null?'hidden':'visible');if(x!=null){ln.setAttribute('x1',x);ln.setAttribute('x2',x);const right=x<W-m.r-150;lb.setAttribute('x',right?x+6:x-6);lb.setAttribute('text-anchor',right?'start':'end');lb.textContent='Median '+dYear}})};
   cancelAnimationFrame(dRaf);const from=dCur,still=matchMedia('(prefers-reduced-motion:reduce)').matches;
