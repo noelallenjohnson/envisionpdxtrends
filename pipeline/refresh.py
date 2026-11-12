@@ -310,6 +310,7 @@ def land_use(lu_rows, bp, P):
             for pid in sub.index: lk.setdefault(pid, []).append((r.INTAKE_COMPLETE, r.ISSUE_DATE if r.STATUS in APPROVED else pd.NaT, r.APPLICATION_NUMBER))
     S['PERMIT_FIRST_ISSUED'] = pd.to_datetime([a for a, b in rows]); S['PERMIT_OUTCOME'] = [b for a, b in rows]
     S['MO'] = ((S.PERMIT_FIRST_ISSUED - S.ISSUE_DATE).dt.days / 30.44).round(1)
+    global LINKED; LINKED = S  # the series with each case's permit outcome, kept for the vesting-rush analysis
     U = S[S.SERIES_ROLE.str.startswith('New units') & (S.UNITS_APPROVED > 0) & S.ISSUE_DATE.notna() & S.STATUS.isin(APPROVED)]
     Bn = pd.DataFrame({'DECISION_YEAR': U.ISSUE_DATE.dt.year.astype(int), 'UNITS_APPROVED': U.UNITS_APPROVED, 'REAL': U.PERMIT_OUTCOME.isin(['Completed', 'Permit issued']), 'MO': U.MO})
     # 2000-2009: read by script from the city description (provisional)
@@ -355,6 +356,29 @@ def site_data(P, lu, asof):
     return {'p': rows, 'b': geo['b'], 'w': geo['w'], 'dur': dur, 'lu': lu, 'asof': asof, 'pop': pop, 'fw': geo['fw'], 'mx': geo['mx']}
 
 
+def vesting_rush(S, P):
+    """Monthly filings around the 1 Feb 2017 inclusionary housing rule, for projects of 20+ homes (the rule's threshold).
+    lu: design/historic review applications by month filed -> [homes that reached a permit, homes with no permit so far, cases, cases that reached a permit]
+    bp: building permit applications by month filed -> [homes issued a permit, homes not issued, projects, projects issued]
+    iss: building permits by month issued -> [homes, projects]"""
+    months = pd.period_range('2013-01', '2019-12', freq='M'); ix = {m: i for i, m in enumerate(months)}
+    lu = [[0, 0, 0, 0] for _ in months]; bpm = [[0, 0, 0, 0] for _ in months]; iss = [[0, 0] for _ in months]
+    N = S[S.SERIES_ROLE.str.startswith('New units') & (S.UNITS_APPROVED >= 20) & S.INTAKE_COMPLETE.notna()]
+    for r in N.itertuples():
+        i = ix.get(pd.Period(r.INTAKE_COMPLETE, 'M'))
+        if i is None: continue
+        real = r.PERMIT_OUTCOME in ('Completed', 'Permit issued'); u = int(r.UNITS_APPROVED)
+        lu[i][0 if real else 1] += u; lu[i][2] += 1; lu[i][3] += int(real)
+    for r in P[P.GROSS >= 20].itertuples():
+        i = ix.get(pd.Period(r.FIRST_SET_UP, 'M')); got = pd.notna(r.FIRST_ISSUED) and not r.OUTCOME.startswith('Expired'); u = int(r.GROSS)
+        if i is not None:
+            bpm[i][0 if got else 1] += u; bpm[i][2] += 1; bpm[i][3] += int(got)
+        if got:
+            j = ix.get(pd.Period(r.FIRST_ISSUED, 'M'))
+            if j is not None: iss[j][0] += u; iss[j][1] += 1
+    return {'start': [2013, 1], 'lu': lu, 'bp': bpm, 'iss': iss}
+
+
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument('--cache'); ap.add_argument('--asof'); ap.add_argument('--force', action='store_true')
     a = ap.parse_args()
@@ -370,6 +394,7 @@ def main():
     P['LU_APPROVED'] = pd.to_datetime(P.PROJECT_ID.map(lambda x: first[x][1] if x in first else pd.NaT))
     asof = a.asof or max(bp.CREATEDATE.max(), bp.ISSUED.max()).strftime('%B %-d, %Y')
     D = site_data(P, lu, asof)
+    D['iz'] = vesting_rush(LINKED, P)
     live = P[~P.OUTCOME.str.startswith('Expired')]
     summ = {'asof': asof, 'projects': int(len(P)), 'gross_units_set_up': int(P.GROSS.sum()), 'net_units_set_up': int(P.NET.sum()),
             'gross_units_issued': int(live[live.FIRST_ISSUED.notna()].GROSS.sum()), 'net_units_issued': int(live[live.FIRST_ISSUED.notna()].NET.sum()),

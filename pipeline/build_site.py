@@ -47,7 +47,7 @@ table.wide td:first-child,table.wide th:first-child{min-width:220px;white-space:
 .yr{font:700 44px/1 var(--display);position:absolute;left:14px;top:10px;color:var(--ink)}
 footer{border-top:3px solid var(--purple);margin-top:56px;padding:22px 0;font-size:14px;color:var(--ink2)}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-@media (max-width:700px){.chart{overflow-x:auto;-webkit-overflow-scrolling:touch} .chart svg{width:760px;max-width:none} figure .sub::after{content:" Swipe the chart sideways to see earlier years.";font-style:italic} figure .sub.wait::after{content:" Swipe the chart sideways to see longer waits."} #eras td:nth-child(2),#eras th:nth-child(2){min-width:190px} table{font-size:13px} th,td{padding:6px 9px}}
+@media (max-width:700px){.chart{overflow-x:auto;-webkit-overflow-scrolling:touch} .chart svg{width:760px;max-width:none} figure .sub::after{content:" Swipe the chart sideways to see earlier years.";font-style:italic} figure .sub.wait::after{content:" Swipe the chart sideways to see longer waits."} #rushtab td:first-child,#rushtab th:first-child{min-width:170px} #eras td:nth-child(2),#eras th:nth-child(2){min-width:190px} table{font-size:13px} th,td{padding:6px 9px}}
 </style></head><body>
 <header class="top"><div class="bar"><nav aria-label="Sections"><a href="#sources">Funding Sources</a><a href="#large">Investable?</a><a href="#where">Where $ Flows</a><a href="#approvals">Macro Shocks</a><a href="#time">City (dis)Approval</a><a href="#overcount">Honest Acctg</a><a href="#method">Method</a><a href="#about">About</a></nav></div></header>
 <main id="top">
@@ -92,6 +92,15 @@ footer{border-top:3px solid var(--purple);margin-top:56px;padding:22px 0;font-si
 <div class="tw" id="eras"></div>
 <p id="lutext"></p>
 <p class="note">Cases for 2010 to mid-2020 were transcribed by hand from city records; later cases were read from the written decisions. Cases before 2010 were read by script from the city's short case descriptions and are provisional. A case is linked to a building permit when the decision names the permit or when a permit of similar size was filed on the same site; some real links are missed, so the share lost is an upper estimate. Approvals from the last three years may still proceed.</p></section>
+
+<section id="rush"><h2>A rush to file before the 2017 inclusionary housing rule</h2>
+<p>Portland adopted its inclusionary housing requirement on December 21, 2016, and it took effect on February 1, 2017, for buildings of 20 or more homes. Projects with an application on file before that date were not subject to it.</p>
+<figure><figcaption>Projects of 20 or more homes: applications filed and permits issued, month by month</figcaption><div class="sub">Homes in each month's filings, 2013 to 2019. The line marks February 1, 2017.</div>
+<div class="ctrl"><button class="tbtn" data-t="t7">Show table</button></div>
+<div class="legend" id="lg7"></div><div class="chart" id="c7"></div><div class="tw" id="t7" hidden></div></figure>
+<div class="tw" id="rushtab"></div>
+<p id="rushtext"></p>
+<p class="note">The 20-home line is the rule's own threshold and does not follow the slider above. Land use applications are design and historic reviews, which only projects in design overlay areas need; they are counted in the month the application was filed, whatever the later decision. A land use application is linked to a building permit when the decision names the permit or a permit of similar size was filed on the same site; some real links are missed, so the share without a permit is an upper estimate. Construction costs, rents and interest rates also moved over these years: the chart shows timing, not cause.</p></section>
 
 <section id="time"><h2>Getting to a permit takes about three times as long as in 2000</h2>
 <figure><figcaption>Months to reach a building permit</figcaption><div class="sub">Median, by year. Shaded: the same three downturns.</div>
@@ -264,6 +273,31 @@ function drawDist(rebuild){const el=$('c6');
   table('t6',['Months waited ('+dYear+')',RG[0],RG[1],RG[2]],Array.from({length:NB},(_,i)=>[RL(i),a.h[0][i],a.h[1][i],a.h[2][i]]).concat([['All projects',a.n[0],a.n[1],a.n[2]],['Median months',...a.med.map(v=>v==null?'':v.toFixed(1))]]))}
 $('dyr').addEventListener('input',e=>{dYear=+e.target.value;drawDist()});
 $('dplay').addEventListener('click',()=>{if(dTimer){clearInterval(dTimer);dTimer=null;$('dplay').textContent='Play';return}$('dplay').textContent='Pause';if(dYear>=2026)dYear=1999;dTimer=setInterval(()=>{dYear++;drawDist();if(dYear>=2026){clearInterval(dTimer);dTimer=null;$('dplay').textContent='Play'}},900)});
+// ---- the rush to file before the 1 Feb 2017 inclusionary housing rule (fixed 20-home threshold)
+(function(){const Z=D.iz;if(!Z)return;const n=Z.lu.length,y0=Z.start[0],mi=(y,m)=>(y-y0)*12+m-1,MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],ml=i=>MN[i%12]+' '+(y0+Math.floor(i/12));
+  const W=1040,m={l:54,r:14},iw=W-m.l-m.r,bw=iw/n,PH=120,HD=28,GAP=12,T0=4,H=T0+3*(HD+PH)+2*GAP+30,cut=mi(2017,2),w0=mi(2016,1);
+  const PN=[{t:'Land use applications filed (design and historic review)',d:Z.lu.map(r=>[r[0],r[1]]),s:['Went on to a building permit','No permit so far'],c:[C.mid,C.grey],u:'application',k:Z.lu.map(r=>r[2])},
+            {t:'Building permit applications filed',d:Z.bp.map(r=>[r[0],r[1]]),s:['Permit issued','No permit so far'],c:[C.mid,C.grey],u:'project',k:Z.bp.map(r=>r[2])},
+            {t:'Building permits issued',d:Z.iss.map(r=>[r[0],0]),s:['Homes permitted'],c:[C.mid],u:'project',k:Z.iss.map(r=>r[1])}];
+  legend('lg7',[['Went on to a building permit',C.mid],['No permit so far',C.grey]]);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Monthly land use applications, building permit applications and permits issued for projects of 20 or more homes, 2013 to 2019">`;
+  PN.forEach((p,k)=>{const py=T0+k*(HD+PH+GAP)+HD,mx=Math.max(...p.d.map(r=>r[0]+r[1])),st=mx>1500?500:mx>800?250:mx>400?200:100,top=Math.ceil(mx/st)*st,yy=v=>py+PH-(v/top)*PH;
+    s+=`<rect x="${m.l+w0*bw}" y="${py}" width="${(cut-w0)*bw}" height="${PH}" fill="var(--band)"/>`+(k==0?`<text class="bandl" x="${m.l+(w0+cut)/2*bw}" y="${py+11}" text-anchor="middle">2016 to January 2017</text>`:'');
+    s+=`<text class="lab" x="${m.l}" y="${py-9}" style="font-size:14px">${p.t}</text>`;
+    for(let v=0;v<=top;v+=st)s+=`<line class="grid" x1="${m.l}" x2="${W-m.r}" y1="${yy(v)}" y2="${yy(v)}"/><text class="ax" x="${m.l-8}" y="${yy(v)+4}" text-anchor="end">${f(v)}</text>`;
+    p.d.forEach((r,i)=>{let acc=0;r.forEach((v,j)=>{if(v<=0)return;const a=yy(acc),b=yy(acc+v);acc+=v;s+=`<rect x="${m.l+i*bw+1}" y="${b}" width="${bw-2}" height="${Math.max(a-b-(j?1:0),1)}" rx="2" fill="${p.c[j]}"/>`})});
+    s+=`<line x1="${m.l}" x2="${W-m.r}" y1="${py+PH}" y2="${py+PH}" stroke="var(--ink2)"/><line x1="${m.l+cut*bw}" x2="${m.l+cut*bw}" y1="${py-4}" y2="${py+PH}" stroke="var(--ink)" stroke-width="2"/>`+(k==0?`<text class="lab" x="${m.l+cut*bw+7}" y="${py+11}">Rule takes effect, Feb 1, 2017</text>`:'');
+    for(let i=0;i<n;i++)s+=`<rect data-k="${k}" data-i="${i}" x="${m.l+i*bw}" y="${py}" width="${bw}" height="${PH}" fill="transparent"/>`});
+  const ay=T0+3*(HD+PH)+2*GAP;for(let i=0;i<n;i+=12)s+=`<line x1="${m.l+i*bw}" x2="${m.l+i*bw}" y1="${ay}" y2="${ay+5}" stroke="var(--ink2)"/><text class="ax" x="${m.l+(i+6)*bw}" y="${ay+18}" text-anchor="middle">${y0+i/12}</text>`;
+  s+=`</svg><div class="tip"></div>`;const el=$('c7');el.innerHTML=s;const tip=el.querySelector('.tip');
+  el.querySelectorAll('rect[data-k]').forEach(rc=>{rc.addEventListener('mousemove',e=>{const p=PN[+rc.dataset.k],i=+rc.dataset.i,r=p.d[i];tipOn(el,tip,e,`<b>${ml(i)}</b><br>`+p.s.map((nm,j)=>`<i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${p.c[j]};margin-right:6px"></i>${nm}: <strong>${f(r[j])}</strong> homes`).join('<br>')+`<br>${p.k[i]} ${p.u}${p.k[i]==1?'':'s'}`)});rc.addEventListener('mouseleave',()=>tip.style.display='none')});
+  table('t7',['Month','Land use applications: homes','of which reached a permit','Building permit applications: homes','of which issued','Permits issued: homes'],Z.lu.map((r,i)=>[ml(i),r[0]+r[1],r[0],Z.bp[i][0]+Z.bp[i][1],Z.bp[i][0],Z.iss[i][0]]));
+  const sum=(A,a,b,j)=>A.slice(a,b).reduce((t,r)=>t+(j.length?j.reduce((q,x)=>q+r[x],0):r[j]),0);
+  const P=[['2013 to 2015',mi(2013,1),mi(2016,1)],['January 2016 to January 2017',w0,cut],['of which December 2016 and January 2017',mi(2016,12),cut],['February 2017 to January 2018',cut,mi(2018,2)],['February 2018 to December 2019',mi(2018,2),n]];
+  const R=P.map(([nm,a,b])=>{const mo=b-a,lc=sum(Z.lu,a,b,2),lh=sum(Z.lu,a,b,[0,1]),lr=sum(Z.lu,a,b,0),bc=sum(Z.bp,a,b,2),bh=sum(Z.bp,a,b,[0,1]),bi=sum(Z.bp,a,b,3),ih=sum(Z.iss,a,b,0);return {nm,mo,lc,lh,lr,bc,bh,bi,ih}});
+  table('rushtab',['Filed in','Land use applications','Homes in them','Share of those homes reaching a permit','Building permit applications','Homes in them, per month','Applications issued a permit','Homes permitted, per month'],R.map(r=>[r.nm,r.lc+' ('+(r.lc/r.mo).toFixed(1)+' a month)',r.lh,r.lh?pct(r.lr/r.lh):'none filed',r.bc+' ('+(r.bc/r.mo).toFixed(1)+' a month)',Math.round(r.bh/r.mo),r.bi+' of '+r.bc,Math.round(r.ih/r.mo)]));
+  const b=R[0],w=R[1],ru=R[2],a1=R[3],a2=R[4],jan=Z.bp[mi(2017,1)];
+  $('rushtext').innerHTML=`In December 2016 and January 2017, developers filed <strong>${ru.lc} land use applications for ${f(ru.lh)} homes</strong>, about ${Math.round((ru.lc/ru.mo)/(b.lc/b.mo))} times the monthly pace of 2013 to 2015. In the twelve months after the rule took effect, ${a1.lc} were filed. Of the homes in land use applications filed from January 2016 through January 2017, <strong>${pct(w.lr/w.lh)} have reached a building permit</strong>, compared with ${pct(b.lr/b.lh)} for 2013 to 2015 and ${pct(a2.lr/a2.lh)} for February 2018 through 2019. Building permit applications behaved differently: ${w.bc} projects applied from January 2016 through January 2017, ${jan[2]} of them in January 2017 alone, and <strong>${w.bi} received a permit</strong>. Afterwards, building permit applications averaged ${f(a1.bh/a1.mo)} homes a month in the following twelve months and ${f(a2.bh/a2.mo)} from February 2018 through 2019, against ${f(w.bh/w.mo)} during the run-up and ${f(b.bh/b.mo)} in 2013 to 2015.`})();
 // ---- approvals and duration (independent of threshold)
 (function(){const L=D.lu,yrs=[];for(let y=2002;y<=2026;y++)yrs.push(y);const by={};L.forEach(r=>by[r.y]=r);
   const S3=[{name:'Went on to a building permit',color:C.mid},{name:'No permit issued so far',color:C.grey}];legend('lg3',S3.map(s=>[s.name,s.color]));
