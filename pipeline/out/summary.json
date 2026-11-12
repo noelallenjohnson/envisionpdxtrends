@@ -1,13 +1,13 @@
 {
- "asof": "November 10, 2026",
- "projects": 17168,
- "gross_units_set_up": 114833,
- "net_units_set_up": 110213,
- "gross_units_issued": 104923,
- "net_units_issued": 100559,
+ "asof": "November 9, 2026",
+ "projects": 17166,
+ "gross_units_set_up": 114821,
+ "net_units_set_up": 110201,
+ "gross_units_issued": 104918,
+ "net_units_issued": 100554,
  "subsidy": {
-  "Not applicable (1-4 units)": 14721,
-  "Market rate": 2154,
+  "Not applicable (1-4 units)": 14720,
+  "Market rate": 2153,
   "Subsidized": 293
  }
 }

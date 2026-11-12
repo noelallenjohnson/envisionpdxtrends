@@ -361,7 +361,7 @@ def vesting_rush(S, P):
     lu: design/historic review applications by month filed -> [homes that reached a permit, homes with no permit so far, cases, cases that reached a permit]
     bp: building permit applications by month filed -> [homes issued a permit, homes not issued, projects, projects issued]
     iss: building permits by month issued -> [homes, projects]"""
-    months = pd.period_range('2013-01', '2019-12', freq='M'); ix = {m: i for i, m in enumerate(months)}
+    months = pd.period_range('2011-01', '2019-12', freq='M'); ix = {m: i for i, m in enumerate(months)}
     lu = [[0, 0, 0, 0] for _ in months]; bpm = [[0, 0, 0, 0] for _ in months]; iss = [[0, 0] for _ in months]
     N = S[S.SERIES_ROLE.str.startswith('New units') & (S.UNITS_APPROVED >= 20) & S.INTAKE_COMPLETE.notna()]
     for r in N.itertuples():
@@ -376,7 +376,7 @@ def vesting_rush(S, P):
         if got:
             j = ix.get(pd.Period(r.FIRST_ISSUED, 'M'))
             if j is not None: iss[j][0] += u; iss[j][1] += 1
-    return {'start': [2013, 1], 'lu': lu, 'bp': bpm, 'iss': iss}
+    return {'start': [2011, 1], 'lu': lu, 'bp': bpm, 'iss': iss}
 
 
 def main():
