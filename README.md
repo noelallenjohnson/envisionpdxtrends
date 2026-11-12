@@ -7,7 +7,9 @@ Source for [envisionpdxtrends.com](https://envisionpdxtrends.com): how housing g
 | Path | What it is |
 |---|---|
 | `index.html` | The website. One self-contained page, rebuilt by the refresh. Do not edit by hand. |
+| `projects.html` | The project list: a searchable table of every project counted. Also rebuilt by the refresh. |
 | `pipeline/build_site.py` | The page template. All of the site's wording lives here. |
+| `pipeline/build_projects_page.py` | The template for the project list page. |
 | `pipeline/refresh.py` | Pulls City of Portland permit records and applies the counting rules. |
 | `pipeline/frozen/` | Decisions and inputs that a person reviewed. The refresh never changes these. |
 | `pipeline/out/` | What the last refresh produced. |
