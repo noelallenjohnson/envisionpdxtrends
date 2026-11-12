@@ -8,14 +8,20 @@ num = lambda v: int(float(v)) if v not in ('', None) else 0
 import re
 def nice(t):
     t = (t or '').title()
+    t = re.sub(r"'S\b", "'s", t)
     t = re.sub(r'\b(Nw|Ne|Sw|Se)\b', lambda m: m.group(1).upper(), t)
     return re.sub(r'(\d)(St|Nd|Rd|Th)\b', lambda m: m.group(1) + m.group(2).lower(), t)
+from datetime import datetime
+def day(v):
+    return datetime.strptime(v[:10], '%Y-%m-%d') if v else None
 with open(os.path.join(HERE, 'out', 'projects.csv'), newline='') as f:
     for r in csv.DictReader(f):
         fund = 1 if r['SUBSIDY'] == 'Market rate' else (2 if r['SUBSIDY'] == 'Subsidized' else 0)
         oc = next(v for k, v in OUT.items() if r['OUTCOME'].startswith(k))
+        seen, appr, iss = day(r['LAND_USE_FIRST_SEEN']), day(r['LAND_USE_APPROVED']), day(r['FIRST_ISSUED'])
+        mo = round((iss - seen).days / 30.44, 1) if seen and iss and iss >= seen else 0  # land use case first seen -> first building permit issued
         rows.append([nice(r['PROJECT_ADDRESS']), nice(r['NEIGHBORHOOD']), num(r['YEAR_FIRST_SET_UP']), num(r['YEAR_FIRST_ISSUED']),
-                     num(r['GROSS_NEW_UNITS']), num(r['DEMOLISHED_UNITS']), num(r['NET_NEW_UNITS']), fund, oc, r['FIRST_APPLICATION'], num(r['PERMITS'])])
+                     num(r['GROSS_NEW_UNITS']), num(r['DEMOLISHED_UNITS']), num(r['NET_NEW_UNITS']), fund, oc, r['FIRST_APPLICATION'], num(r['PERMITS']), appr.year if appr else 0, mo])
 asof = json.load(open(os.path.join(HERE, 'out', 'summary.json')))['asof']
 html = r'''<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -59,7 +65,7 @@ footer{border-top:3px solid var(--purple);margin-top:40px;padding:20px 0;font-si
 <div class="sum" id="sum" aria-live="polite"></div>
 <div class="tw"><table><thead><tr id="hd"></tr></thead><tbody id="tb"></tbody></table></div>
 <div class="pg"><button id="prev" type="button">Previous</button><span id="pos"></span><button id="next" type="button">Next</button></div>
-<p class="note">One row is one project: building permits filed within 40 meters and 270 days of each other are grouped. New homes are the homes the project adds; homes removed are homes demolished on the same site; net new is the difference. Funding is tagged for projects of five or more homes: subsidized means state, local bond or federal tax-credit money, or university housing, and a market-rate project with required inclusionary units counts as market rate. The permit number is the first permit in the project and can be looked up on PortlandMaps. Expired or cancelled projects are listed but are not counted in the site's totals of permitted homes.</p>
+<p class="note">One row is one project: building permits filed within 40 meters and 270 days of each other are grouped. New homes are the homes the project adds; net new is new homes minus homes demolished on the same site. LU approved is the year the city approved the project's land use review. Full city duration is the number of months from the day the city first received that land use application to the day the first building permit was issued. Both are shown for projects that went through a design or historic review that could be matched to the project; they are blank for projects that needed no such review, and for land divisions. Funding is tagged for projects of five or more homes: subsidized means state, local bond or federal tax-credit money, or university housing, and a market-rate project with required inclusionary units counts as market rate. The permit number is the first permit in the project and can be looked up on PortlandMaps. Expired or cancelled projects are listed but are not counted in the site's totals of permitted homes.</p>
 <footer>&copy; 2026 Old i, LLC &middot; Data through __ASOF__ &middot; Source: City of Portland permit records via PortlandMaps</footer>
 </main>
 <script>
@@ -67,7 +73,7 @@ const R=__ROWS__;
 const $=i=>document.getElementById(i),f=n=>n.toLocaleString('en-US');
 const SZ=['1 to 4','5 to 74','75 or more'],SC=['var(--s14)','var(--s574)','var(--s75)'],FU=['','Market rate','Subsidized'],OC=['Completed','Permit issued','In review','Expired or cancelled'];
 const size=r=>r[4]<=4?0:r[4]<=74?1:2;
-const COLS=[['Address',r=>r[0],0],['Neighborhood',r=>r[1],0],['Applied',r=>r[2],1],['Permit issued',r=>r[3],1],['Size class',r=>size(r),0],['New homes',r=>r[4],1],['Homes removed',r=>r[5],1],['Net new',r=>r[6],1],['Funding',r=>r[7],0],['Status',r=>r[8],0],['First permit',r=>r[9],0]];
+const COLS=[['Address',r=>r[0],0],['Neighborhood',r=>r[1],0],['LU approved',r=>r[11],1],['Permit issued',r=>r[3],1],['Size class',r=>size(r),0],['New homes',r=>r[4],1],['Full city duration',r=>r[12],1],['Net new',r=>r[6],1],['Funding',r=>r[7],0],['Status',r=>r[8],0],['First permit',r=>r[9],0]];
 let sortC=5,sortD=-1,page=0,view=[];const PER=50;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function head(){$('hd').innerHTML=COLS.map((c,i)=>`<th class="${c[2]?'n':''}" ${i==sortC?`aria-sort="${sortD>0?'ascending':'descending'}"`:''}><button type="button" data-i="${i}">${c[0]}${i==sortC?(sortD>0?' ▲':' ▼'):''}</button></th>`).join('')}
@@ -80,7 +86,7 @@ function draw(){
   const n=view.length,pages=Math.max(1,Math.ceil(n/PER));page=Math.min(page,pages-1);
   const gross=view.reduce((s,r)=>s+r[4],0),net=view.reduce((s,r)=>s+r[6],0);
   $('sum').innerHTML=n?`<b>${f(n)}</b> project${n==1?'':'s'} &middot; <b>${f(gross)}</b> new homes &middot; <b>${f(net)}</b> net new`:'No projects match. Try a shorter search or clear a filter.';
-  $('tb').innerHTML=view.slice(page*PER,page*PER+PER).map(r=>{const s=size(r);return `<tr><td>${esc(r[0])||'<span class="sub">No address on permit</span>'}${r[10]>1?`<div class="sub">${r[10]} permits</div>`:''}</td><td>${esc(r[1])}</td><td class="n">${r[2]}</td><td class="n">${r[3]||'<span class="sub">none</span>'}</td><td><i class="dot" style="background:${SC[s]}"></i>${SZ[s]}</td><td class="n">${f(r[4])}</td><td class="n">${r[5]?f(r[5]):''}</td><td class="n">${f(r[6])}</td><td>${FU[r[7]]}</td><td>${OC[r[8]]}</td><td>${esc(r[9])}</td></tr>`}).join('');
+  $('tb').innerHTML=view.slice(page*PER,page*PER+PER).map(r=>{const s=size(r);return `<tr><td>${esc(r[0])||'<span class="sub">No address on permit</span>'}${r[10]>1?`<div class="sub">${r[10]} permits</div>`:''}</td><td>${esc(r[1])}</td><td class="n">${r[11]||''}</td><td class="n">${r[3]||'<span class="sub">none</span>'}</td><td><i class="dot" style="background:${SC[s]}"></i>${SZ[s]}</td><td class="n">${f(r[4])}</td><td class="n">${r[12]?r[12].toFixed(1)+' mo':''}</td><td class="n">${f(r[6])}</td><td>${FU[r[7]]}</td><td>${OC[r[8]]}</td><td>${esc(r[9])}</td></tr>`}).join('');
   $('pos').textContent=n?`Page ${page+1} of ${f(pages)}`:'';$('prev').disabled=page==0;$('next').disabled=page>=pages-1;head()}
 $('hd').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const i=+b.dataset.i;if(i==sortC)sortD=-sortD;else{sortC=i;sortD=COLS[i][2]?-1:1}apply()});
 ['q','fs','ff','fo','y0','y1'].forEach(i=>$(i).addEventListener('input',apply));

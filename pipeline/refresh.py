@@ -283,7 +283,7 @@ def land_use(lu_rows, bp, P):
     per = bp[(bp.GROSS_NEW_UNITS > 0) & bp.X.notna() & bp.PROJECT_ID.isin(P.PROJECT_ID)]
     t = cKDTree(per[['X', 'Y']].to_numpy()); ppid = per.PROJECT_ID.to_numpy(); px = per.X.to_numpy(); py = per.Y.to_numpy()
     pinfo = P.set_index('PROJECT_ID'); k11 = dict(zip(bp.APPLICATION.str[:11], bp.PROJECT_ID))
-    rows = []
+    rows = []; lk = {}  # lk: project -> land use cases (first seen, approved, case number), design and historic reviews only
     for r in S.itertuples():
         cand = {}; how = ''
         c = r.BUILDING_PERMITS_CITED
@@ -306,6 +306,8 @@ def land_use(lu_rows, bp, P):
             sub = ok.iloc[[(ok.rat - 1).abs().argmin()]]
         out = ('Completed' if (sub.OUTCOME.str.startswith('Completed')).all() else ('Permit issued' if sub.FIRST_ISSUED.notna().any() else ('Permit expired or cancelled' if sub.OUTCOME.str.startswith('Expired').all() else 'Permit in review')))
         rows.append((sub.FIRST_ISSUED.min(), out))
+        if r.SERIES_ROLE.startswith('New units') and pd.notna(r.INTAKE_COMPLETE):
+            for pid in sub.index: lk.setdefault(pid, []).append((r.INTAKE_COMPLETE, r.ISSUE_DATE if r.STATUS in APPROVED else pd.NaT, r.APPLICATION_NUMBER))
     S['PERMIT_FIRST_ISSUED'] = pd.to_datetime([a for a, b in rows]); S['PERMIT_OUTCOME'] = [b for a, b in rows]
     S['MO'] = ((S.PERMIT_FIRST_ISSUED - S.ISSUE_DATE).dt.days / 30.44).round(1)
     U = S[S.SERIES_ROLE.str.startswith('New units') & (S.UNITS_APPROVED > 0) & S.ISSUE_DATE.notna() & S.STATUS.isin(APPROVED)]
@@ -322,6 +324,7 @@ def land_use(lu_rows, bp, P):
                 q = pinfo.loc[ppid[j]]; dd = (q.FIRST_SET_UP - r.CREATEDATE).days; rat = q.GROSS / r.U
                 if -365 <= dd <= 365 * 7 and 0.5 <= rat <= 2 and (best is None or abs(rat - 1) < best[0]): best = (abs(rat - 1), ppid[j])
         fi = pinfo.FIRST_ISSUED[best[1]] if best else pd.NaT
+        if best: lk.setdefault(best[1], []).append((r.CREATEDATE, r.ISSUED, r.APPLICATION))
         ar.append(dict(DECISION_YEAR=r.ISSUED.year, UNITS_APPROVED=r.U, REAL=bool(best) and pd.notna(fi), MO=((fi - r.ISSUED).days / 30.44) if pd.notna(fi) else np.nan))
     A = pd.DataFrame(ar)
     C = pd.concat([A[A.DECISION_YEAR < 2010], Bn[Bn.DECISION_YEAR >= 2010]], ignore_index=True)
@@ -330,7 +333,7 @@ def land_use(lu_rows, bp, P):
         if y < 2002: continue
         mo = d.loc[d.REAL & (d.MO > -6), 'MO'].median()
         out.append({'y': int(y), 'units': int(d.UNITS_APPROVED.sum()), 'perm': int(d.loc[d.REAL, 'UNITS_APPROVED'].sum()), 'cases': int(len(d)), 'cp': int(d.REAL.sum()), 'mo': (None if pd.isna(mo) else round(float(mo), 1))})
-    return out
+    return out, lk
 
 
 # ---------------------------------------------------------------- 6. site data
@@ -359,7 +362,11 @@ def main():
     bp, proj = build_projects(bp, raw['demo'])
     proj = match_subsidy(bp, proj)
     P = baseline(bp, proj)
-    lu = land_use(raw['lu'], bp, P)
+    lu, lk = land_use(raw['lu'], bp, P)
+    first = {pid: min(v, key=lambda t: t[0]) for pid, v in lk.items()}  # the earliest land use case tied to each project
+    P['LU_CASE'] = P.PROJECT_ID.map(lambda x: first[x][2] if x in first else '')
+    P['LU_FIRST_SEEN'] = pd.to_datetime(P.PROJECT_ID.map(lambda x: first[x][0] if x in first else pd.NaT))
+    P['LU_APPROVED'] = pd.to_datetime(P.PROJECT_ID.map(lambda x: first[x][1] if x in first else pd.NaT))
     asof = a.asof or max(bp.CREATEDATE.max(), bp.ISSUED.max()).strftime('%B %-d, %Y')
     D = site_data(P, lu, asof)
     live = P[~P.OUTCOME.str.startswith('Expired')]
@@ -378,7 +385,7 @@ def main():
     open(os.path.join(OUT, 'data.json'), 'w').write(json.dumps(D, separators=(',', ':')))
     cols = {'PROJECT_ID': 'PROJECT_ID', 'YEAR': 'YEAR_FIRST_SET_UP', 'YEAR_ISSUED': 'YEAR_FIRST_ISSUED', 'PROJECT_ADDRESS': 'PROJECT_ADDRESS', 'NEIGHBORHOOD': 'NEIGHBORHOOD', 'CLASS': 'CAPITAL_CLASS', 'SUBSIDY': 'SUBSIDY',
             'GROSS': 'GROSS_NEW_UNITS', 'DEMOLISHED_UNITS': 'DEMOLISHED_UNITS', 'NET': 'NET_NEW_UNITS', 'OUTCOME': 'OUTCOME', 'DEVELOPER': 'DEVELOPER', 'SUBSIDY_BASIS': 'SUBSIDY_BASIS', 'REVIEW_STATUS': 'REVIEW_STATUS',
-            'PERMITS': 'PERMITS', 'TYPES': 'TYPES', 'UNIT_EVENTS': 'UNIT_EVENTS', 'FIRST_SET_UP': 'FIRST_SET_UP', 'FIRST_ISSUED': 'FIRST_ISSUED', 'LAST_FINAL': 'LAST_FINAL', 'MATCH_NAME': 'SUBSIDY_RECORD_NAME', 'FIRST_APPLICATION': 'FIRST_APPLICATION', 'LATITUDE': 'LATITUDE', 'LONGITUDE': 'LONGITUDE'}
+            'PERMITS': 'PERMITS', 'TYPES': 'TYPES', 'UNIT_EVENTS': 'UNIT_EVENTS', 'FIRST_SET_UP': 'FIRST_SET_UP', 'FIRST_ISSUED': 'FIRST_ISSUED', 'LAST_FINAL': 'LAST_FINAL', 'MATCH_NAME': 'SUBSIDY_RECORD_NAME', 'FIRST_APPLICATION': 'FIRST_APPLICATION', 'LU_CASE': 'LAND_USE_CASE', 'LU_FIRST_SEEN': 'LAND_USE_FIRST_SEEN', 'LU_APPROVED': 'LAND_USE_APPROVED', 'LATITUDE': 'LATITUDE', 'LONGITUDE': 'LONGITUDE'}
     T = P[list(cols)].rename(columns=cols)
     T.to_csv(os.path.join(OUT, 'projects.csv'), index=False)
     # projects of 5+ homes first set up after the November 2026 review, tagged by rule only: these need a human look
