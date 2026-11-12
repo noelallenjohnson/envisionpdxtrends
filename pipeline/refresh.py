@@ -346,7 +346,8 @@ def site_data(P, lu, asof):
         sub = 1 if r.SUBSIDY == 'Market rate' else (2 if r.SUBSIDY == 'Subsidized' else 0)
         yi = int(r.YEAR_ISSUED) if r.YEAR_ISSUED == r.YEAR_ISSUED else 0
         yf = int(r.LAST_FINAL.year) if (r.OUTCOME.startswith('Completed') and pd.notna(r.LAST_FINAL)) else 0
-        rows.append([x, y, int(r.YEAR), yi, int(r.GROSS), int(r.NET), sub, 1 if r.OUTCOME.startswith('Expired') else 0, yf])
+        mo = round(max((r.FIRST_ISSUED - r.FIRST_SET_UP).days / 30.44, 0), 1) if pd.notna(r.FIRST_ISSUED) else -1  # months from permit application to first permit issued
+        rows.append([x, y, int(r.YEAR), yi, int(r.GROSS), int(r.NET), sub, 1 if r.OUTCOME.startswith('Expired') else 0, yf, mo])
     L = P[(P.GROSS >= 5) & P.FIRST_ISSUED.notna()].copy(); L['m'] = (L.FIRST_ISSUED - L.FIRST_SET_UP).dt.days / 30.44
     g = L.groupby('YEAR_ISSUED').m
     dur = [{'y': int(y), 'm': round(float(g.median()[y]), 1), 'q1': round(float(g.quantile(.25)[y]), 1), 'q3': round(float(g.quantile(.75)[y]), 1)} for y in sorted(g.groups)]

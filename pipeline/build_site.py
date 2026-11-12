@@ -47,7 +47,7 @@ table.wide td:first-child,table.wide th:first-child{min-width:220px;white-space:
 .yr{font:700 44px/1 var(--display);position:absolute;left:14px;top:10px;color:var(--ink)}
 footer{border-top:3px solid var(--purple);margin-top:56px;padding:22px 0;font-size:14px;color:var(--ink2)}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-@media (max-width:700px){.chart{overflow-x:auto;-webkit-overflow-scrolling:touch} .chart svg{width:760px;max-width:none} figure .sub::after{content:" Swipe the chart sideways to see earlier years.";font-style:italic} #eras td:nth-child(2),#eras th:nth-child(2){min-width:190px} table{font-size:13px} th,td{padding:6px 9px}}
+@media (max-width:700px){.chart{overflow-x:auto;-webkit-overflow-scrolling:touch} .chart svg{width:760px;max-width:none} figure .sub::after{content:" Swipe the chart sideways to see earlier years.";font-style:italic} figure .sub.wait::after{content:" Swipe the chart sideways to see longer waits."} #eras td:nth-child(2),#eras th:nth-child(2){min-width:190px} table{font-size:13px} th,td{padding:6px 9px}}
 </style></head><body>
 <header class="top"><div class="bar"><nav aria-label="Sections"><a href="#sources">Funding Sources</a><a href="#large">Investable?</a><a href="#where">Where $ Flows</a><a href="#approvals">Macro Shocks</a><a href="#time">City (dis)Approval</a><a href="#overcount">Honest Acctg</a><a href="#method">Method</a><a href="#about">About</a></nav></div></header>
 <main id="top">
@@ -97,7 +97,11 @@ footer{border-top:3px solid var(--purple);margin-top:56px;padding:22px 0;font-si
 <figure><figcaption>Months to reach a building permit</figcaption><div class="sub">Median, by year. Shaded: the same three downturns.</div>
 <div class="ctrl"><button class="tbtn" data-t="t5">Show table</button></div>
 <div class="legend" id="lg5"></div><div class="chart" id="c5"></div><div class="tw" id="t5" hidden></div></figure>
-<p id="durtext"></p></section>
+<p id="durtext"></p>
+<figure><figcaption>How long projects waited for a building permit, year by year</figcaption><div class="sub wait">Share of each size's projects by months from permit application to first permit issued, for permits issued in the selected year. Press Play to watch the waits lengthen.</div>
+<div class="ctrl"><button class="tbtn" id="dplay">Play</button><input type="range" id="dyr" min="2000" max="2026" step="1" value="2025" aria-label="Year permit issued"><button class="tbtn" data-t="t6">Show table</button></div>
+<div class="chart keepleft" id="c6"></div><div class="tw" id="t6" hidden></div></figure>
+<p class="note">Bars show the share of that size's projects issued a permit that year; the count is given at the right of each panel, and some years have only a handful of large projects. The last bar holds every wait of 30 months or more. The dashed line marks the median in 2000. Records begin in January 2000, so permits issued in 2000 and 2001 cannot show waits longer than one to two years. 2026 is a partial year.</p></section>
 
 <section id="overcount"><h2>Why the city overstates housing production</h2>
 <p>The city's permit system carries a "new units" figure on each permit, but adding that column up counts homes that were never added. These are the ways it happens, with the number found in the record for 2000 to 2026.</p>
@@ -134,7 +138,7 @@ document.querySelectorAll('.asof').forEach(e=>e.textContent=D.asof);
 let T=75, basis='iss';
 const YEARS=[];for(let y=2000;y<=2026;y++)YEARS.push(y);
 const BANDS=[{a:2008,b:2009,label:'Financial crisis'},{a:2020,b:2020,label:'Pandemic'},{a:2022,b:2023,label:'Rates rise'}];
-// project fields: 0 x,1 y,2 year applied,3 year issued,4 gross,5 net,6 subsidy(1 market,2 subsidized),7 expired,8 year completed
+// project fields: 0 x,1 y,2 year applied,3 year issued,4 gross,5 net,6 subsidy(1 market,2 subsidized),7 expired,8 year completed,9 months from permit application to permit (-1 none)
 const cls=u=>u<=4?0:(u<T?1:2);
 function agg(){const idx=basis=='iss'?3:2;const A={};YEARS.forEach(y=>A[y]={y,c:[0,0,0],net:0,bm:0,bs:0,bmn:0,bsn:0});
   D.p.forEach(p=>{if(p[7])return;const a=A[p[idx]];if(!a)return;const k=cls(p[4]);a.c[k]+=p[4];a.net+=p[5];if(k==2){if(p[6]==2){a.bs+=p[4];a.bsn++}else{a.bm+=p[4];a.bmn++}}});return YEARS.map(y=>A[y])}
@@ -203,7 +207,7 @@ function render(){
   let last=null;D.p.forEach(p=>{if(!p[7]&&p[3]&&cls(p[4])==2&&p[6]!=2&&(!last||p[3]>last))last=p[3]});const since=iss.filter(r=>r.y>last),sN=since.reduce((a,r)=>a+r.bsn,0),sU=since.reduce((a,r)=>a+r.bs,0),bm=iss.reduce((a,r)=>a+r.bm,0),bs=iss.reduce((a,r)=>a+r.bs,0);
   $('callout').innerHTML=last>=2026?`Market-rate projects of ${T} or more homes are still reaching permits in 2026 under this definition.`:`<strong>No market-rate project of ${T} or more homes has received a building permit since ${last}.</strong> From ${last+1} through 2026 to date, every project of that size to reach a permit was affordable / income restricted (i.e. subsidized by taxpayers): ${sN} projects with ${f(sU)} homes.`;
   $('callout2').innerHTML=`Since 2000, large market-rate projects supplied ${f(bm)} homes and large subsidized projects ${f(bs)}.`;
-  drawMap()}
+  drawMap();drawDist(true)}
 $('thr').addEventListener('input',e=>{T=+e.target.value;render()});
 [['b-iss','iss'],['b-st','st']].forEach(([id,key])=>$(id).addEventListener('click',()=>{basis=key;$('b-iss').setAttribute('aria-pressed',key=='iss');$('b-st').setAttribute('aria-pressed',key=='st');render()}));
 // ---- map
@@ -221,6 +225,45 @@ legend('lg4',[['Wealthy Households',C.small],['Local / Regional Wealth',C.mid],[
 $('yr').addEventListener('input',e=>{mapYear=+e.target.value;drawMap()});
 [['m-year',false],['m-cum',true]].forEach(([id,v])=>$(id).addEventListener('click',()=>{mapCum=v;$('m-year').setAttribute('aria-pressed',!v);$('m-cum').setAttribute('aria-pressed',v);drawMap()}));
 $('play').addEventListener('click',()=>{if(timer){clearInterval(timer);timer=null;$('play').textContent='Play';return}$('play').textContent='Pause';if(mapYear>=2026)mapYear=1999;timer=setInterval(()=>{mapYear++;drawMap();if(mapYear>=2026){clearInterval(timer);timer=null;$('play').textContent='Play'}},700)});
+// ---- distribution of permit waits, by year and project size (follows the threshold)
+let dYear=2025,dTimer=null,dA=null,dS=null,dCur=null,dRaf=0;const NB=16,BINW=2; // 2-month bins; the last holds 30+
+function distData(){const A={};YEARS.forEach(y=>A[y]={h:[0,1,2].map(()=>Array(NB).fill(0)),v:[[],[],[]]});
+  D.p.forEach(p=>{if(p[9]<0||!A[p[3]])return;const k=cls(p[4]);A[p[3]].h[k][Math.min(NB-1,Math.floor(p[9]/BINW))]++;A[p[3]].v[k].push(p[9])});
+  const med=a=>{if(!a.length)return null;a.sort((x,y)=>x-y);const m=a.length>>1;return a.length%2?a[m]:(a[m-1]+a[m])/2};
+  YEARS.forEach(y=>{A[y].med=A[y].v.map(med);A[y].n=A[y].v.map(a=>a.length)});return A}
+function drawDist(rebuild){const el=$('c6');
+  const W=1040,m={l:54,r:14},iw=W-m.l-m.r,bw=iw/NB,PH=118,HD=30,GAP=14,T0=6,H=T0+3*(HD+PH)+2*GAP+46;
+  const NM=['Wealthy Households','Local / Regional Wealth','Institutional / Public Capital Allocation'],RG=['1 to 4 units','5 to '+(T-1)+' units',T+' or more units'],CL=[C.small,C.mid,C.big];
+  const py=k=>T0+k*(HD+PH+GAP)+HD, xm=v=>m.l+Math.min(v,BINW*(NB-1)+BINW/2)/BINW*bw;
+  if(rebuild||!dS){dA=distData();
+    const tops=[0,1,2].map(k=>{const mx=Math.max(...YEARS.map(y=>dA[y].n[k]?Math.max(...dA[y].h[k])/dA[y].n[k]:0));const st=mx>.6?.25:mx>.3?.2:.1;return {top:Math.min(1,Math.ceil(mx/st-1e-9)*st),st}});
+    let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Share of projects by months waited for a building permit, by project size, for the selected year">`;
+    [0,1,2].forEach(k=>{const y0=py(k),tp=tops[k];
+      s+=`<rect x="${m.l}" y="${y0-HD+9}" width="12" height="12" rx="2" fill="${CL[k]}"/><text class="lab" x="${m.l+19}" y="${y0-HD+20}" style="font-size:14px">${NM[k]} (${RG[k]})</text><text class="ax" id="ds${k}" x="${W-m.r}" y="${y0-HD+20}" text-anchor="end" style="font-size:13px"></text>`;
+      for(let v=0;v<=tp.top+1e-9;v+=tp.st){const yy=y0+PH-(v/tp.top)*PH;s+=`<line class="grid" x1="${m.l}" x2="${W-m.r}" y1="${yy}" y2="${yy}"/><text class="ax" x="${m.l-8}" y="${yy+4}" text-anchor="end">${Math.round(v*100)}%</text>`}
+      for(let i=0;i<NB;i++)s+=`<rect id="db${k}_${i}" x="${m.l+i*bw+1}" width="${bw-2}" y="${y0+PH}" height="0" rx="3" fill="${CL[k]}"/>`;
+      s+=`<line id="dr${k}" y1="${y0}" y2="${y0+PH}" stroke="var(--ink2)" stroke-width="1.5" stroke-dasharray="4 4"/><text class="bandl" id="drl${k}" y="${y0+11}">2000</text>`;
+      s+=`<line id="dm${k}" y1="${y0-4}" y2="${y0+PH}" stroke="var(--ink)" stroke-width="2.5"/><text class="lab" id="dml${k}" y="${y0+11}"></text>`;
+      s+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y0+PH}" y2="${y0+PH}" stroke="var(--ink2)"/>`;
+      for(let i=0;i<NB;i++)s+=`<rect data-k="${k}" data-i="${i}" x="${m.l+i*bw}" y="${y0}" width="${bw}" height="${PH}" fill="transparent"/>`});
+    const ay=py(2)+PH;for(let v=0;v<=24;v+=6)s+=`<text class="ax" x="${m.l+v/BINW*bw}" y="${ay+17}" text-anchor="middle">${v}</text>`;
+    s+=`<text class="ax" x="${m.l+(NB-.5)*bw}" y="${ay+17}" text-anchor="middle">30+</text><text class="ax" x="${m.l+iw/2}" y="${ay+38}" text-anchor="middle">Months from permit application to permit issued</text>`;
+    s+=`<text id="dyv" x="${W-m.r}" y="${py(0)+52}" text-anchor="end" style="font:700 44px var(--display);fill:var(--ink)"></text></svg><div class="tip"></div>`;
+    el.innerHTML=s;dS={tops};dCur=null;const tip=el.querySelector('.tip');
+    el.querySelectorAll('rect[data-k]').forEach(rc=>{rc.addEventListener('mousemove',e=>{const k=+rc.dataset.k,i=+rc.dataset.i,a=dA[dYear],c=a.h[k][i];tipOn(el,tip,e,`<b>${dYear}: ${i==NB-1?'30 months or more':i*BINW+' to '+(i+1)*BINW+' months'}</b><br><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${CL[k]};margin-right:6px"></i>${NM[k]}: <strong>${f(c)}</strong> project${c==1?'':'s'}`+(a.n[k]?` (${pct(c/a.n[k])})`:'')+(a.med[k]!=null?`<br>Median wait: <strong>${a.med[k].toFixed(1)} months</strong>`:''))});rc.addEventListener('mouseleave',()=>tip.style.display='none')})}
+  const a=dA[dYear],ref=dA[2000],tgt={h:a.h.map((r,k)=>r.map(c=>a.n[k]?c/a.n[k]/dS.tops[k].top*PH:0)),med:a.med.map(v=>v==null?null:xm(v))};
+  $('dyv').textContent=dYear+(dYear==2026?'*':'');$('dyr').value=dYear;
+  [0,1,2].forEach(k=>{$('ds'+k).textContent=a.n[k]?`${f(a.n[k])} project${a.n[k]==1?'':'s'} · median ${a.med[k].toFixed(1)} months`:'No permits issued';
+    const rx=ref.med[k]==null||dYear==2000?null:xm(ref.med[k]);['dr'+k,'drl'+k].forEach(id=>$(id).setAttribute('visibility',rx==null?'hidden':'visible'));if(rx!=null){$('dr'+k).setAttribute('x1',rx);$('dr'+k).setAttribute('x2',rx);$('drl'+k).setAttribute('x',rx-5);$('drl'+k).setAttribute('text-anchor','end')}});
+  const put=st=>{[0,1,2].forEach(k=>{const y0=py(k);st.h[k].forEach((h,i)=>{const b=$('db'+k+'_'+i);b.setAttribute('y',y0+PH-h);b.setAttribute('height',Math.max(h,0))});
+    const ln=$('dm'+k),lb=$('dml'+k),x=st.med[k];ln.setAttribute('visibility',x==null?'hidden':'visible');lb.setAttribute('visibility',x==null?'hidden':'visible');if(x!=null){ln.setAttribute('x1',x);ln.setAttribute('x2',x);const right=x<W-m.r-150;lb.setAttribute('x',right?x+6:x-6);lb.setAttribute('text-anchor',right?'start':'end');lb.textContent='Median '+dYear}})};
+  cancelAnimationFrame(dRaf);const from=dCur,still=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if(!from||still){dCur=tgt;put(tgt)}else{const t0=performance.now(),D0=450;const step=now=>{const u=Math.min(1,(now-t0)/D0),e=u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2;
+      const st={h:tgt.h.map((r,k)=>r.map((v,i)=>from.h[k][i]+(v-from.h[k][i])*e)),med:tgt.med.map((v,k)=>v==null?null:(from.med[k]==null?v:from.med[k]+(v-from.med[k])*e))};put(st);dCur=st;if(u<1)dRaf=requestAnimationFrame(step);else dCur=tgt};dRaf=requestAnimationFrame(step)}
+  const RL=i=>i==NB-1?'30 or more':i*BINW+' to '+(i+1)*BINW;
+  table('t6',['Months waited ('+dYear+')',RG[0],RG[1],RG[2]],Array.from({length:NB},(_,i)=>[RL(i),a.h[0][i],a.h[1][i],a.h[2][i]]).concat([['All projects',a.n[0],a.n[1],a.n[2]],['Median months',...a.med.map(v=>v==null?'':v.toFixed(1))]]))}
+$('dyr').addEventListener('input',e=>{dYear=+e.target.value;drawDist()});
+$('dplay').addEventListener('click',()=>{if(dTimer){clearInterval(dTimer);dTimer=null;$('dplay').textContent='Play';return}$('dplay').textContent='Pause';if(dYear>=2026)dYear=1999;dTimer=setInterval(()=>{dYear++;drawDist();if(dYear>=2026){clearInterval(dTimer);dTimer=null;$('dplay').textContent='Play'}},900)});
 // ---- approvals and duration (independent of threshold)
 (function(){const L=D.lu,yrs=[];for(let y=2002;y<=2026;y++)yrs.push(y);const by={};L.forEach(r=>by[r.y]=r);
   const S3=[{name:'Went on to a building permit',color:C.mid},{name:'No permit issued so far',color:C.grey}];legend('lg3',S3.map(s=>[s.name,s.color]));
@@ -236,7 +279,7 @@ $('play').addEventListener('click',()=>{if(timer){clearInterval(timer);timer=nul
   table('t5',['Year','Permit application to permit, median months','Land use decision to permit, median months'],dy.map(y=>[y,dm[y]??'',by[y]&&by[y].mo!=null&&by[y].cp>=4?by[y].mo:'']));
   $('durtext').innerHTML=`For projects of five or more homes, the median time from applying for a building permit to receiving it was <strong>${dm[2000]} months in 2000</strong>, about ${dm[2010]} in 2010 and <strong>${dm[2025]} months in 2025</strong>. It has stayed near ${Math.round((dm[2021]+dm[2022]+dm[2023]+dm[2024]+dm[2025])/5)} months since 2021.`})();
 render();
-if(innerWidth<=700)document.querySelectorAll('.chart').forEach(c=>c.scrollLeft=c.scrollWidth);
+if(innerWidth<=700)document.querySelectorAll('.chart:not(.keepleft)').forEach(c=>c.scrollLeft=c.scrollWidth);
 </script></body></html>'''
 open(os.path.join(HERE,'..','index.html'),'w').write(html.replace('__DATA__',D)); print('index.html written',len(html))
 import runpy; runpy.run_path(os.path.join(HERE,'build_projects_page.py'))
