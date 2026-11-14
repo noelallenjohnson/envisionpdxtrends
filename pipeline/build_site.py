@@ -22,7 +22,7 @@ nav{display:flex;flex-wrap:wrap;gap:4px 18px} nav a{font:500 14px var(--body);te
 main{max-width:1080px;margin:0 auto;padding:0 20px 80px}
 .hero{padding:52px 0 20px;display:grid;gap:18px}
 .eyebrow{font:600 13px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--purple)}
-h1{font:700 clamp(34px,5.4vw,60px)/1.05 var(--display);color:var(--ink);margin:0;max-width:18ch;text-wrap:balance}
+h1{font:700 clamp(26px,3.4vw,38px)/1.12 var(--display);color:var(--ink);margin:0;max-width:26ch;text-wrap:balance}
 .lede{font-size:20px;max-width:62ch;margin:0}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0 24px;border-top:3px solid var(--ink);margin:16px 0 4px}
 .tile{padding:16px 0 14px;border-bottom:1px solid var(--rule)} .tile b{display:block;font:700 40px/1 var(--display);color:var(--ink);font-variant-numeric:tabular-nums} .tile span{font-size:14px;color:var(--ink2);display:block;margin-top:6px;max-width:30ch}
