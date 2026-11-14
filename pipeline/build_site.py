@@ -76,6 +76,9 @@ footer{border-top:3px solid var(--purple);margin-top:56px;padding:22px 0;font-si
 <div class="ctrl"><button class="tbtn" data-t="t2">Show table</button></div>
 <div class="legend" id="lg2"></div><div class="chart" id="c2"></div><div class="tw" id="t2" hidden></div></figure>
 <div class="call"><p id="callout" style="margin-bottom:10px"></p><p id="callout2"></p></div>
+<figure><figcaption>Subsidized share of all homes permitted, year by year</figcaption><div class="sub">Subsidized homes as a share of homes permitted each year, across projects of every size. Dark lines show the average for each period.</div>
+<div class="ctrl"><button class="tbtn" data-t="t9">Show table</button></div>
+<div class="chart" id="c9"></div><div class="tw" id="t9" hidden></div></figure>
 <p id="subshare"></p>
 <p class="note">Subsidized means a project receiving state, local bond or federal tax-credit money, or university housing. A market-rate project that includes required inclusionary units is counted as market rate because it receives no public money: the below-market rents are paid for inside the building, by its market-rate renters. When a rule requires some rents to be below market and does not offset the cost, it subsidizes some residents through others. Economists describe such a requirement as a tax on new housing paired with a price ceiling on the required homes (<a href="https://openyls.law.yale.edu/entities/publication/201901c5-a5c4-4999-8850-1f1d7bdc3732">Ellickson, "The Irony of 'Inclusionary' Zoning," 1981</a>). Oregon law now reflects this: Senate Bill 1521, signed in March 2026, requires Portland-area cities with an inclusionary mandate to offset its cost in full through payments, tax exemptions or fee waivers (<a href="https://www.sightline.org/2026/03/05/oregons-new-path-to-inclusionary-housing-fully-funded-and-flexible/">Sightline Institute summary</a>). Tags for the largest and most recent projects were checked one by one; older and smaller projects rely on matching to public affordable-housing records.</p></section>
 
@@ -116,6 +119,9 @@ footer{border-top:3px solid var(--purple);margin-top:56px;padding:22px 0;font-si
 <p class="note">Bars show the share of that size's projects issued a permit that year; the count is given at the right of each panel, and some years have only a handful of large projects. The last bar holds every wait of 30 months or more. The dashed lines mark the medians for the normal, higher volume housing production years. Records begin in January 2000, so permits issued in 2000 and 2001 cannot show waits longer than one to two years. 2026 is a partial year.</p>
 <h3 style="font:700 22px var(--display);margin:34px 0 8px">With land use review included</h3>
 <p>Larger projects in design overlay areas need a land use review before they can apply for a building permit. For projects of 75 or more homes whose review could be matched to a permit, this is the wait from filing the land use application to receiving the first building permit.</p>
+<figure><figcaption>Large projects: months from land use filing to building permit</figcaption><div class="sub">Each dot is one project of 75 or more homes, placed at the year its first building permit was issued. Colored lines are the median for each kind of funding in each period, where at least three projects were permitted; the shaded band is the middle half of all projects. The number of projects in each period is in parentheses.</div>
+<div class="ctrl"><button class="tbtn" data-t="t8">Show table</button></div>
+<div class="legend" id="lg8"></div><div class="chart" id="c8"></div><div class="tw" id="t8" hidden></div></figure>
 <div class="tw" id="luwtab"></div>
 <p id="luwtext"></p>
 <p class="note">Fixed at 75 homes; this table does not follow the slider. It counts only projects that reached a building permit, so projects still waiting are not included, and the number of projects is small.</p></section>
@@ -224,7 +230,7 @@ function render(){
   let last=null;D.p.forEach(p=>{if(!p[7]&&p[3]&&cls(p[4])==2&&p[6]!=2&&(!last||p[3]>last))last=p[3]});const since=iss.filter(r=>r.y>last),sN=since.reduce((a,r)=>a+r.bsn,0),sU=since.reduce((a,r)=>a+r.bs,0),bm=iss.reduce((a,r)=>a+r.bm,0),bs=iss.reduce((a,r)=>a+r.bs,0);
   $('callout').innerHTML=last>=2026?`Market-rate projects of ${T} or more homes are still reaching permits in 2026 under this definition.`:`<strong>No market-rate project of ${T} or more homes has received a building permit since ${last}.</strong> From ${last+1} through 2026 to date, every project of that size to reach a permit was affordable / income restricted (i.e. subsidized by taxpayers): ${sN} projects with ${f(sU)} homes.`;
   $('callout2').innerHTML=`Since 2000, large market-rate projects supplied ${f(bm)} homes and large subsidized projects ${f(bs)}.`;
-  drawMap();drawDist(true);extras()}
+  drawMap();drawDist(true);extras();drawSubShare()}
 $('thr').addEventListener('input',e=>{T=+e.target.value;render()});
 [['b-iss','iss'],['b-st','st']].forEach(([id,key])=>$(id).addEventListener('click',()=>{basis=key;$('b-iss').setAttribute('aria-pressed',key=='iss');$('b-st').setAttribute('aria-pressed',key=='st');render()}));
 // ---- map
@@ -282,6 +288,7 @@ function drawDist(rebuild){const el=$('c6');
 $('dyr').addEventListener('input',e=>{dYear=+e.target.value;drawDist()});
 $('dplay').addEventListener('click',()=>{if(dTimer){clearInterval(dTimer);dTimer=null;$('dplay').textContent='Play';return}$('dplay').textContent='Pause';if(dYear>=2026)dYear=1999;dTimer=setInterval(()=>{dYear++;drawDist();if(dYear>=2026){clearInterval(dTimer);dTimer=null;$('dplay').textContent='Play'}},900)});
 // ---- the rush to file before the 1 Feb 2017 inclusionary housing rule (fixed 20-home threshold)
+drawWaits();
 (function(){const Z=D.iz;if(!Z)return;const n=Z.lu.length,y0=Z.start[0],mi=(y,m)=>(y-y0)*12+m-1,MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],ml=i=>MN[i%12]+' '+(y0+Math.floor(i/12));
   const W=1040,m={l:54,r:14},iw=W-m.l-m.r,bw=iw/n,PH=150,HD=28,GAP=14,T0=4,NP=2,H=T0+NP*(HD+PH)+(NP-1)*GAP+30,cut=mi(2017,2),w0=mi(2016,1);
   const PN=[{t:'Land use applications filed (design and historic review)',d:Z.lu.map(r=>[r[0],r[1]]),s:['Went on to a building permit','Never reached a building permit'],c:[C.mid,C.grey],u:'application',k:Z.lu.map(r=>r[2])},
@@ -326,6 +333,38 @@ function extras(){const live=D.p.filter(p=>!p[7]&&p[3]),sum=(a,b,g)=>live.filter
   const W=D.luw;if(W){const m=v=>v==null?'':v.toFixed(1)+' months';
     table('luwtab',['Projects of 75 or more homes with a land use review','Permitted 2010 to 2019','Permitted since March 2020'],[['Land use filing to building permit (median)',m(W.before.med),m(W.since.med)],['Middle half of projects',W.before.q1.toFixed(0)+' to '+W.before.q3.toFixed(0)+' months',W.since.q1.toFixed(0)+' to '+W.since.q3.toFixed(0)+' months'],['Land use review itself (median)',m(W.before.rev),m(W.since.rev)],['Land use approval to building permit (median)',m(W.before.ap),m(W.since.ap)],['Building permit application to issue (median)',m(W.before.bp),m(W.since.bp)],['Projects',W.before.n,W.since.n]]);
     $('luwtext').innerHTML=`Since March 2020 the median wait from land use filing to building permit is <strong>${W.since.med.toFixed(1)} months</strong>, against ${W.before.med.toFixed(1)} in 2010 to 2019. The two kinds of funding differ sharply: ${W.sub.med.toFixed(1)} months for subsidized projects (${W.sub.n} projects) and ${W.mkt.med.toFixed(1)} months for market-rate projects (${W.mkt.n} projects). Several of those market-rate projects held a land use approval for years before applying for a building permit, so that wait is not all city processing time.`}}
+// ---- land use filing to permit, project by project (fixed 75 homes), and subsidized share by year
+function drawWaits(){const W=D.luw;if(!W||!W.pts)return;const el=$('c8'),P=W.pts,CL={1:C.big,2:C.small},NM={1:'Market rate',2:'Subsidized'};
+  const PER=[[2003,2007],[2008,2012],[2013,2016],[2017,2019],[2020,2023],[2024,2026]],y0=2003,y1=2026,ny=y1-y0+1;
+  const Wd=1040,H=420,m={l:54,r:14,t:16,b:52},iw=Wd-m.l-m.r,ih=H-m.t-m.b,bw=iw/ny,top=96,yy=v=>m.t+ih-(Math.min(v,top)/top)*ih,xl=y=>m.l+(y-y0)*bw;
+  const med=a=>{if(!a.length)return null;const b=[...a].sort((p,q)=>p-q),k=b.length>>1;return b.length%2?b[k]:(b[k-1]+b[k])/2},qt=(a,q)=>{const b=[...a].sort((p,r)=>p-r),i=(b.length-1)*q,lo=Math.floor(i);return b[lo]+(b[Math.min(lo+1,b.length-1)]-b[lo])*(i-lo)};
+  legend('lg8',[['Market rate',C.big],['Subsidized',C.small],['Middle half of all projects in the period','#D9D4DE']]);
+  let s=`<svg viewBox="0 0 ${Wd} ${H}" role="img" aria-label="Months from land use filing to building permit for each large project, by year permitted and funding">`;const rows=[];
+  PER.forEach(([a,b],i)=>{const d=P.filter(p=>p[0]>=a&&p[0]<=b),x0=xl(a)+3,x1=xl(b+1)-3,all=d.map(p=>p[1]);
+    if(d.length>=4){const q1=qt(all,.25),q3=qt(all,.75);s+=`<rect x="${x0}" y="${yy(q3)}" width="${x1-x0}" height="${yy(q1)-yy(q3)}" fill="#D9D4DE" opacity=".55" rx="3"/>`}
+    s+=`<text class="ax" x="${(x0+x1)/2}" y="${H-10}" text-anchor="middle">${a} to ${b} (${d.length})</text>`+(i?`<line x1="${xl(a)}" x2="${xl(a)}" y1="${m.t}" y2="${m.t+ih+26}" stroke="var(--rule)"/>`:'');
+    const row=[a+' to '+b,d.length,d.length?med(all).toFixed(1):'',d.length>=4?qt(all,.25).toFixed(0)+' to '+qt(all,.75).toFixed(0):''];[1,2].forEach(k=>{const v=d.filter(p=>p[2]==k).map(p=>p[1]);row.push(v.length,v.length?med(v).toFixed(1):'')});rows.push(row)});
+  for(let v=0;v<=top;v+=12)s+=`<line class="grid" x1="${m.l}" x2="${Wd-m.r}" y1="${yy(v)}" y2="${yy(v)}"/><text class="ax" x="${m.l-8}" y="${yy(v)+4}" text-anchor="end">${v}</text>`;
+  s+=`<text class="ax" x="${m.l-40}" y="${m.t+4}" text-anchor="start" style="font-size:11px"></text>`;
+  for(let y=y0;y<=y1;y++)s+=`<text class="ax" x="${xl(y)+bw/2}" y="${m.t+ih+17}" text-anchor="middle">${String(y).slice(2)}</text>`;
+  const cnt={};P.forEach((p,i)=>{if(p[0]<y0)return;const j=cnt[p[0]]=(cnt[p[0]]||0)+1,off=((j%5)-2)*bw*.16;s+=`<circle data-i="${i}" cx="${xl(p[0])+bw/2+off}" cy="${yy(p[1])}" r="5.5" fill="${CL[p[2]]}" stroke="#fff" stroke-width="2"/>`});
+  PER.forEach(([a,b])=>{const x0=xl(a)+3,x1=xl(b+1)-3;[1,2].forEach(k=>{const v=P.filter(p=>p[0]>=a&&p[0]<=b&&p[2]==k).map(p=>p[1]);if(v.length<3)return;const mv=med(v);s+=`<line x1="${x0}" x2="${x1}" y1="${yy(mv)}" y2="${yy(mv)}" stroke="#fff" stroke-width="6"/><line x1="${x0}" x2="${x1}" y1="${yy(mv)}" y2="${yy(mv)}" stroke="${CL[k]}" stroke-width="3"/><text class="lab" x="${k==1?x1-4:x0+4}" y="${yy(mv)+(k==1?-7:17)}" text-anchor="${k==1?'end':'start'}" style="paint-order:stroke;stroke:#fff;stroke-width:4px">${mv.toFixed(0)} mo</text>`})});
+  s+=`<line x1="${m.l}" x2="${Wd-m.r}" y1="${m.t+ih}" y2="${m.t+ih}" stroke="var(--ink2)"/><text class="ax" x="${m.l}" y="${m.t-3}">Months</text></svg><div class="tip"></div>`;el.innerHTML=s;const tip=el.querySelector('.tip');
+  el.querySelectorAll('circle[data-i]').forEach(c=>{const p=P[+c.dataset.i];c.addEventListener('mousemove',e=>tipOn(el,tip,e,`<b>Permitted ${p[0]}</b><br><i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${CL[p[2]]};margin-right:6px"></i>${NM[p[2]]}, ${f(p[3])} homes<br>Land use filing to permit: <strong>${p[1].toFixed(1)} months</strong>`));c.addEventListener('mouseleave',()=>tip.style.display='none')});
+  table('t8',['Permitted in','Projects','Median months, all','Middle half, months','Market-rate projects','Market-rate median','Subsidized projects','Subsidized median'],rows)}
+function drawSubShare(){const el=$('c9'),live=D.p.filter(p=>!p[7]&&p[3]),tot={},sub={};live.forEach(p=>{tot[p[3]]=(tot[p[3]]||0)+p[4];if(p[6]==2)sub[p[3]]=(sub[p[3]]||0)+p[4]});
+  const sh=YEARS.map(y=>tot[y]?(sub[y]||0)/tot[y]:0),PER=[[2000,2009],[2010,2019],[2020,2023],[2024,2026]];
+  const W=1040,H=320,m={l:54,r:14,t:18,b:34},iw=W-m.l-m.r,ih=H-m.t-m.b,n=YEARS.length,bw=iw/n,top=.5,yy=v=>m.t+ih-(Math.min(v,top)/top)*ih,xOf=yr=>{const i=YEARS.indexOf(yr);return i<0?null:m.l+i*bw};
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Subsidized homes as a share of all homes permitted, by year">`+bands(xOf,bw,m,ih,W);
+  for(let v=0;v<=top+1e-9;v+=.1)s+=`<line class="grid" x1="${m.l}" x2="${W-m.r}" y1="${yy(v)}" y2="${yy(v)}"/><text class="ax" x="${m.l-8}" y="${yy(v)+4}" text-anchor="end">${Math.round(v*100)}%</text>`;
+  YEARS.forEach((y,i)=>{const h=yy(0)-yy(sh[i]);s+=`<rect x="${m.l+i*bw+2}" y="${yy(sh[i])}" width="${bw-4}" height="${Math.max(h,0)}" rx="3" fill="${C.small}"/>`+(i%2==0?`<text class="ax" x="${m.l+i*bw+bw/2}" y="${H-12}" text-anchor="middle">${y}${y==2026?'*':''}</text>`:'')});
+  const rows=YEARS.map((y,i)=>[String(y),sub[y]||0,tot[y]||0,pct(sh[i])]);
+  PER.forEach(([a,b])=>{const t=YEARS.filter(y=>y>=a&&y<=b).reduce((q,y)=>q+(tot[y]||0),0),u=YEARS.filter(y=>y>=a&&y<=b).reduce((q,y)=>q+(sub[y]||0),0),v=u/t,x0=xOf(a)+2,x1=xOf(b)+bw-2;
+    s+=`<line x1="${x0}" x2="${x1}" y1="${yy(v)}" y2="${yy(v)}" stroke="#fff" stroke-width="6"/><line x1="${x0}" x2="${x1}" y1="${yy(v)}" y2="${yy(v)}" stroke="var(--ink)" stroke-width="2.5"/><text class="lab" x="${(x0+x1)/2}" y="${yy(v)-8}" text-anchor="middle" style="paint-order:stroke;stroke:#fff;stroke-width:4px">${a} to ${b}: ${pct(v)}</text>`;rows.push([a+' to '+b,u,t,pct(v)])});
+  s+=`<line x1="${m.l}" x2="${W-m.r}" y1="${yy(0)}" y2="${yy(0)}" stroke="var(--ink2)"/>`;YEARS.forEach((y,i)=>{s+=`<rect data-i="${i}" x="${m.l+i*bw}" y="${m.t}" width="${bw}" height="${ih}" fill="transparent"/>`});
+  s+=`</svg><div class="tip"></div>`;el.innerHTML=s;const tip=el.querySelector('.tip');
+  el.querySelectorAll('rect[data-i]').forEach(r=>{const i=+r.dataset.i,y=YEARS[i];r.addEventListener('mousemove',e=>tipOn(el,tip,e,`<b>${y}</b><br>Subsidized: <strong>${pct(sh[i])}</strong> of homes permitted<br>${f(sub[y]||0)} of ${f(tot[y]||0)} homes`));r.addEventListener('mouseleave',()=>tip.style.display='none')});
+  table('t9',['Year or period','Subsidized homes','All homes permitted','Subsidized share'],rows)}
 // ---- approvals and duration (independent of threshold)
 (function(){const L=D.lu,yrs=[];for(let y=2002;y<=2026;y++)yrs.push(y);const by={};L.forEach(r=>by[r.y]=r);
   const S3=[{name:'Went on to a building permit',color:C.mid},{name:'No permit issued so far',color:C.grey}];legend('lg3',S3.map(s=>[s.name,s.color]));

@@ -363,7 +363,8 @@ def lu_waits(P):
     def block(d):
         return {'n': int(len(d)), 'med': r1(d.w.median()), 'q1': r1(d.w.quantile(.25)), 'q3': r1(d.w.quantile(.75)), 'rev': r1(d.rev.median()), 'ap': r1(d.ap.median()), 'bp': r1(d.bp.median())}
     a = L[(L.FIRST_ISSUED >= '2010-01-01') & (L.FIRST_ISSUED < '2020-01-01')]; b = L[L.FIRST_ISSUED >= '2020-03-01']
-    return {'before': block(a), 'since': block(b), 'sub': block(b[b.SUBSIDY == 'Subsidized']), 'mkt': block(b[b.SUBSIDY == 'Market rate'])}
+    pts = [[int(r.FIRST_ISSUED.year), round(float(r.w), 1), 2 if r.SUBSIDY == 'Subsidized' else 1, int(r.GROSS)] for r in L.sort_values('FIRST_ISSUED').itertuples()]  # one row per project: year permitted, months waited, funding, homes
+    return {'before': block(a), 'since': block(b), 'sub': block(b[b.SUBSIDY == 'Subsidized']), 'mkt': block(b[b.SUBSIDY == 'Market rate']), 'pts': pts}
 
 
 def site_data(P, lu, asof):
