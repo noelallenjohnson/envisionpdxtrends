@@ -66,7 +66,7 @@ footer{border-top:3px solid var(--purple);margin-top:40px;padding:20px 0;font-si
 <div class="tw"><table><thead><tr id="hd"></tr></thead><tbody id="tb"></tbody></table></div>
 <div class="pg"><button id="prev" type="button">Previous</button><span id="pos"></span><button id="next" type="button">Next</button></div>
 <p class="note">One row is one project: building permits filed within 40 meters and 270 days of each other are grouped. New homes are the homes the project adds; net new is new homes minus homes demolished on the same site. LU approved is the year the city approved the project's land use review. Approval Time is the number of years, to the nearest tenth, from the day the city first received that land use application to the day the first building permit was issued. Both are shown for projects that went through a design or historic review that could be matched to the project; they are blank for projects that needed no such review, and for land divisions. Funding is tagged for projects of five or more homes: subsidized means state, local bond or federal tax-credit money, or university housing, and a market-rate project with required inclusionary units counts as market rate. The permit number is the first permit in the project and can be looked up on PortlandMaps. Expired or cancelled projects are listed but are not counted in the site's totals of permitted homes.</p>
-<footer><p>&copy; 2026 Conrad / Old i, LLC. All rights reserved. Data through November 2026.</p>
+<footer><p>&copy; 2026 Conrad / Old i, LLC. All rights reserved. Data through __ASOFM__.</p>
 <p>The underlying land use and building permit records are public records from the City of Portland.  The public sources are believed to be reliable, but are provided without warranty.  Note, that corrections are welcomed. The compiled, cleaned and classified data series, integrated with correlated info like public subsidies, along with the visualizations are the proprietary work of Conrad / Old i, LLC.</p>
 <p>Please quote or reproduce figures and charts with acknowledgement: “Source: envisionpdxtrends.com / Old i, LLC” and we hope this work is helpful.  Republishing the data series in bulk or using it commercially requires written permission.</p></footer>
 </main>
@@ -95,6 +95,6 @@ $('hd').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)re
 $('prev').onclick=()=>{page--;draw();scrollTo(0,$('sum').offsetTop-10)};$('next').onclick=()=>{page++;draw();scrollTo(0,$('sum').offsetTop-10)};
 apply();
 </script></body></html>'''
-html = html.replace('__ROWS__', json.dumps(rows, separators=(',', ':'))).replace('__ASOF__', asof)
+html = html.replace('__ROWS__', json.dumps(rows, separators=(',', ':'))).replace('__ASOF__', asof).replace('__ASOFM__', re.sub(r' \d+,', '', asof))
 open(os.path.join(HERE, '..', 'projects.html'), 'w').write(html)
 print('projects.html written', len(rows), 'projects', len(html))

@@ -149,7 +149,7 @@ footer{border-top:3px solid var(--purple);margin-top:56px;padding:22px 0;font-si
 
 <section id="about"><h2>About this housing data visualization project</h2>
 <p>Envision Portland Trends began in the summer of 2020 as a project to visualize the city's own housing data, built as applied learning in housing production, city governance and statistics / computer science realms. The effort was funded by Old i, LLC via federal COVID PPP stimulus to create socially helpful learning for Williams College students that also can enable better civic decision making. It is not a study. It is a mirror: the City of Portland's own land use and building permit records, organized so that anyone can see the patterns for themselves. Where the site interprets a pattern, it says so and cites its source.</p></section>
-<footer><p>&copy; 2026 Conrad / Old i, LLC. All rights reserved. Data through November 2026.</p>
+<footer><p>&copy; 2026 Conrad / Old i, LLC. All rights reserved. Data through <span id="asofm">November 2026</span>.</p>
 <p>The underlying land use and building permit records are public records from the City of Portland.  The public sources are believed to be reliable, but are provided without warranty.  Note, that corrections are welcomed. The compiled, cleaned and classified data series, integrated with correlated info like public subsidies, along with the visualizations are the proprietary work of Conrad / Old i, LLC.</p>
 <p>Please quote or reproduce figures and charts with acknowledgement: “Source: envisionpdxtrends.com / Old i, LLC” and we hope this work is helpful.  Republishing the data series in bulk or using it commercially requires written permission.</p></footer>
 </main>
@@ -367,6 +367,7 @@ function drawSubShare(){const el=$('c9'),live=D.p.filter(p=>!p[7]&&p[3]),tot={},
   s+=`</svg><div class="tip"></div>`;el.innerHTML=s;const tip=el.querySelector('.tip');
   el.querySelectorAll('rect[data-i]').forEach(r=>{const i=+r.dataset.i,y=YEARS[i];r.addEventListener('mousemove',e=>tipOn(el,tip,e,`<b>${y}</b><br>Subsidized: <strong>${pct(sh[i])}</strong> of homes permitted<br>${f(sub[y]||0)} of ${f(tot[y]||0)} homes`));r.addEventListener('mouseleave',()=>tip.style.display='none')});
   table('t9',['Year or period','Subsidized homes','All homes permitted','Subsidized share'],rows)}
+$('asofm').textContent=D.asof.replace(/ \d+,/,''); // footer date follows the data: "November 10, 2026" -> "November 2026"
 // ---- approvals and duration (independent of threshold)
 (function(){const L=D.lu,yrs=[];for(let y=2002;y<=2026;y++)yrs.push(y);const by={};L.forEach(r=>by[r.y]=r);
   const S3=[{name:'Went on to a building permit',color:C.mid},{name:'No permit issued so far',color:C.grey}];legend('lg3',S3.map(s=>[s.name,s.color]));
