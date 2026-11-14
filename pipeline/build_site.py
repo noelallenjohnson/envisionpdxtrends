@@ -45,7 +45,7 @@ table.wide td:first-child,table.wide th:first-child{min-width:220px;white-space:
 .call{background:var(--wash);border-left:6px solid var(--gold);padding:16px 20px;margin:20px 0;max-width:74ch} .call p{margin:0}
 .mapwrap{position:relative;max-width:820px;border:1px solid var(--rule)} canvas{display:block;width:100%;height:auto}
 .yr{font:700 44px/1 var(--display);position:absolute;left:14px;top:10px;color:var(--ink)}
-footer{border-top:3px solid var(--purple);margin-top:56px;padding:22px 0;font-size:14px;color:var(--ink2)}
+footer{border-top:3px solid var(--purple);margin-top:56px;padding:22px 0;font-size:14px;color:var(--ink2)} footer p{max-width:86ch;margin:0 0 8px}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 @media (max-width:700px){.chart{overflow-x:auto;-webkit-overflow-scrolling:touch} .chart svg{width:760px;max-width:none} figure .sub::after{content:" Swipe the chart sideways to see earlier years.";font-style:italic} figure .sub.wait::after{content:" Swipe the chart sideways to see longer waits."} #rushtab td:first-child,#rushtab th:first-child{min-width:170px} #eras td:nth-child(2),#eras th:nth-child(2){min-width:190px} table{font-size:13px} th,td{padding:6px 9px}}
 </style></head><body>
@@ -149,7 +149,9 @@ footer{border-top:3px solid var(--purple);margin-top:56px;padding:22px 0;font-si
 
 <section id="about"><h2>About this housing data visualization project</h2>
 <p>Envision Portland Trends began in the summer of 2020 as a project to visualize the city's own housing data, built as applied learning in housing production, city governance and statistics / computer science realms. The effort was funded by Old i, LLC via federal COVID PPP stimulus to create socially helpful learning for Williams College students that also can enable better civic decision making. It is not a study. It is a mirror: the City of Portland's own land use and building permit records, organized so that anyone can see the patterns for themselves. Where the site interprets a pattern, it says so and cites its source.</p></section>
-<footer>&copy; 2026 Old i, LLC &middot; Data through Nov 2026</footer>
+<footer><p>&copy; 2026 Conrad / Old i, LLC. All rights reserved. Data through November 2026.</p>
+<p>The underlying land use and building permit records are public records from the City of Portland.  The public sources are believed to be reliable, but are provided without warranty.  Note, that corrections are welcomed. The compiled, cleaned and classified data series, integrated with correlated info like public subsidies, along with the visualizations are the proprietary work of Conrad / Old i, LLC.</p>
+<p>Please quote or reproduce figures and charts with acknowledgement: “Source: envisionpdxtrends.com / Old i, LLC” and we hope this work is helpful.  Republishing the data series in bulk or using it commercially requires written permission.</p></footer>
 </main>
 <script>
 const D=__DATA__;

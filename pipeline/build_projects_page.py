@@ -35,7 +35,7 @@ a{color:var(--purple)} a:focus-visible,button:focus-visible,input:focus-visible,
 header.top{border-bottom:3px solid var(--purple)} .bar{max-width:1180px;margin:0 auto;padding:12px 20px} .bar a{font:500 14px var(--body);text-decoration:none} .bar a:hover{text-decoration:underline}
 main{max-width:1180px;margin:0 auto;padding:0 20px 70px}
 .eyebrow{font:600 13px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--purple);margin-top:40px}
-h1{font:700 clamp(30px,4.6vw,48px)/1.08 var(--display);margin:8px 0 10px} p{max-width:74ch;margin:0 0 12px} .note{font-size:14px;color:var(--ink2)}
+h1{font:700 clamp(30px,4.6vw,48px)/1.08 var(--display);margin:8px 0 10px} p{max-width:74ch;margin:0 0 12px} .note{font-size:14px;color:var(--ink2)} footer p{max-width:86ch;margin:0 0 8px}
 .filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px 14px;background:var(--wash);border-left:6px solid var(--purple);padding:14px 16px;margin:20px 0 10px}
 .filters label{display:grid;gap:4px;font:600 13px var(--body)} .filters .wide{grid-column:span 2}
 input,select{font:400 15px var(--body);padding:7px 9px;border:1px solid #B9B2C2;border-radius:4px;background:#fff;color:var(--ink);width:100%}
@@ -66,7 +66,9 @@ footer{border-top:3px solid var(--purple);margin-top:40px;padding:20px 0;font-si
 <div class="tw"><table><thead><tr id="hd"></tr></thead><tbody id="tb"></tbody></table></div>
 <div class="pg"><button id="prev" type="button">Previous</button><span id="pos"></span><button id="next" type="button">Next</button></div>
 <p class="note">One row is one project: building permits filed within 40 meters and 270 days of each other are grouped. New homes are the homes the project adds; net new is new homes minus homes demolished on the same site. LU approved is the year the city approved the project's land use review. Approval Time is the number of years, to the nearest tenth, from the day the city first received that land use application to the day the first building permit was issued. Both are shown for projects that went through a design or historic review that could be matched to the project; they are blank for projects that needed no such review, and for land divisions. Funding is tagged for projects of five or more homes: subsidized means state, local bond or federal tax-credit money, or university housing, and a market-rate project with required inclusionary units counts as market rate. The permit number is the first permit in the project and can be looked up on PortlandMaps. Expired or cancelled projects are listed but are not counted in the site's totals of permitted homes.</p>
-<footer>&copy; 2026 Old i, LLC &middot; Data through __ASOF__ &middot; Source: City of Portland permit records via PortlandMaps</footer>
+<footer><p>&copy; 2026 Conrad / Old i, LLC. All rights reserved. Data through November 2026.</p>
+<p>The underlying land use and building permit records are public records from the City of Portland.  The public sources are believed to be reliable, but are provided without warranty.  Note, that corrections are welcomed. The compiled, cleaned and classified data series, integrated with correlated info like public subsidies, along with the visualizations are the proprietary work of Conrad / Old i, LLC.</p>
+<p>Please quote or reproduce figures and charts with acknowledgement: “Source: envisionpdxtrends.com / Old i, LLC” and we hope this work is helpful.  Republishing the data series in bulk or using it commercially requires written permission.</p></footer>
 </main>
 <script>
 const R=__ROWS__;
