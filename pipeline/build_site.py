@@ -28,6 +28,7 @@ h1{font:700 clamp(26px,3.4vw,38px)/1.12 var(--display);color:var(--ink);margin:0
 .tile{padding:16px 0 14px;border-bottom:1px solid var(--rule)} .tile b{display:block;font:700 40px/1 var(--display);color:var(--ink);font-variant-numeric:tabular-nums} .tile span{font-size:14px;color:var(--ink2);display:block;margin-top:6px;max-width:30ch}
 section{padding:40px 0 8px;border-top:1px solid var(--rule);margin-top:34px}
 h2{font:700 clamp(26px,3.4vw,38px)/1.12 var(--display);color:var(--ink);margin:0 0 10px;max-width:26ch;text-wrap:balance}
+.welcome{font-size:18px;line-height:1.55;max-width:74ch;margin:14px 0 34px}
 h2.sub2{font-size:clamp(22px,2.6vw,29px);max-width:32ch}
 .theme{display:block;font:600 14px/1.3 var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--purple);margin:0 0 8px}
 h3{font:600 20px/1.25 var(--display);margin:26px 0 6px}
@@ -54,6 +55,7 @@ footer{border-top:3px solid var(--purple);margin-top:56px;padding:22px 0;font-si
 <header class="top"><div class="bar"><nav aria-label="Sections"><a href="#sources">Funding Sources</a><a href="#large">Investable?</a><a href="#where">Where $ Flows</a><a href="#approvals">Macro Shocks</a><a href="#time">City (dis)Approval</a><a href="#overcount">Honest Acctg</a><a href="#method">Method</a><a href="#about">About</a></nav></div></header>
 <main id="top">
 <div class="hero"><div class="eyebrow">This century's housing creation in Portland, Oregon &middot; 2000 to 2026</div>
+<p class="welcome">This work began in the summer of 2020 as a project to visualize the city's own data, structured as applied learning in housing production, city governance and statistics / computer science realms. The effort was funded by Old i, LLC by use of the federal COVID PPP stimulus to create meaningful work and learning for Williams College students... that also can enable better civic decision making.  Visualization data is a mirror on the City of Portland's housing approach, systems and structures.</p>
 <h1><span class="theme">Visualization Theme 1: Funding</span>How a city funds housing creation</h1>
 <p class="lede">Housing production is a flow; thus, ratios and rates are the measures.</p>
 <div class="tw" id="ctx"></div>
