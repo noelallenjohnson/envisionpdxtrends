@@ -338,17 +338,46 @@ def land_use(lu_rows, bp, P):
 
 
 # ---------------------------------------------------------------- 6. site data
+def near_max(P, metres=800):
+    """True for each project within `metres` of a MAX light rail line as it runs today (frozen/geo.json)."""
+    geo = json.load(open(os.path.join(FROZEN, 'geo.json'))); X0, X1, Y0, Y1 = -122.84, -122.47, 45.43, 45.66
+    pts = []
+    for ln in geo['mx']:
+        L = ln if isinstance(ln[0], (list, tuple)) else [ln[i:i + 2] for i in range(0, len(ln), 2)]
+        for (ax, ay), (bx, by) in zip(L[:-1], L[1:]):
+            for t in np.linspace(0, 1, 12): pts.append((ax + (bx - ax) * t, ay + (by - ay) * t))
+    pts = np.array(pts); lon = X0 + pts[:, 0] / 1000 * (X1 - X0); lat = Y1 - pts[:, 1] / 1000 * (Y1 - Y0)
+    tr = cKDTree(np.c_[XY(lon, lat)]); x, y = XY(P.LONGITUDE.to_numpy(), P.LATITUDE.to_numpy())
+    ok = ~np.isnan(x); d = np.full(len(P), np.inf); d[ok] = tr.query(np.c_[x[ok], y[ok]])[0]
+    return d <= metres
+
+
+def lu_waits(P):
+    """Large projects (75+ homes) with a matched design or historic review that reached a permit:
+    months from land use filing to first building permit, for permits issued 2010-2019 and since March 2020."""
+    L = P[(P.GROSS >= 75) & P.LU_FIRST_SEEN.notna() & P.FIRST_ISSUED.notna() & ~P.OUTCOME.str.startswith('Expired')].copy()
+    mo = lambda a, b: (b - a).dt.days / 30.44
+    L['w'] = mo(L.LU_FIRST_SEEN, L.FIRST_ISSUED); L = L[L.w >= 0]
+    L['rev'] = mo(L.LU_FIRST_SEEN, L.LU_APPROVED); L['ap'] = mo(L.LU_APPROVED, L.FIRST_ISSUED); L['bp'] = mo(L.FIRST_SET_UP, L.FIRST_ISSUED)
+    r1 = lambda v: None if pd.isna(v) else round(float(v), 1)
+    def block(d):
+        return {'n': int(len(d)), 'med': r1(d.w.median()), 'q1': r1(d.w.quantile(.25)), 'q3': r1(d.w.quantile(.75)), 'rev': r1(d.rev.median()), 'ap': r1(d.ap.median()), 'bp': r1(d.bp.median())}
+    a = L[(L.FIRST_ISSUED >= '2010-01-01') & (L.FIRST_ISSUED < '2020-01-01')]; b = L[L.FIRST_ISSUED >= '2020-03-01']
+    return {'before': block(a), 'since': block(b), 'sub': block(b[b.SUBSIDY == 'Subsidized']), 'mkt': block(b[b.SUBSIDY == 'Market rate'])}
+
+
 def site_data(P, lu, asof):
+    nm = near_max(P)
     X0, X1, Y0, Y1 = -122.84, -122.47, 45.43, 45.66
     qx = lambda lo: int(round((lo - X0) / (X1 - X0) * 1000)); qy = lambda la: int(round((Y1 - la) / (Y1 - Y0) * 1000))
     rows = []
-    for r in P.itertuples():
+    for k, r in enumerate(P.itertuples()):
         x = qx(r.LONGITUDE) if r.LONGITUDE == r.LONGITUDE else -1; y = qy(r.LATITUDE) if r.LATITUDE == r.LATITUDE else -1
         sub = 1 if r.SUBSIDY == 'Market rate' else (2 if r.SUBSIDY == 'Subsidized' else 0)
         yi = int(r.YEAR_ISSUED) if r.YEAR_ISSUED == r.YEAR_ISSUED else 0
         yf = int(r.LAST_FINAL.year) if (r.OUTCOME.startswith('Completed') and pd.notna(r.LAST_FINAL)) else 0
         mo = round(max((r.FIRST_ISSUED - r.FIRST_SET_UP).days / 30.44, 0), 1) if pd.notna(r.FIRST_ISSUED) else -1  # months from permit application to first permit issued
-        rows.append([x, y, int(r.YEAR), yi, int(r.GROSS), int(r.NET), sub, 1 if r.OUTCOME.startswith('Expired') else 0, yf, mo])
+        rows.append([x, y, int(r.YEAR), yi, int(r.GROSS), int(r.NET), sub, 1 if r.OUTCOME.startswith('Expired') else 0, yf, mo, int(nm[k])])
     L = P[(P.GROSS >= 5) & P.FIRST_ISSUED.notna()].copy(); L['m'] = (L.FIRST_ISSUED - L.FIRST_SET_UP).dt.days / 30.44
     g = L.groupby('YEAR_ISSUED').m
     dur = [{'y': int(y), 'm': round(float(g.median()[y]), 1), 'q1': round(float(g.quantile(.25)[y]), 1), 'q3': round(float(g.quantile(.75)[y]), 1)} for y in sorted(g.groups)]
@@ -395,6 +424,7 @@ def main():
     asof = a.asof or max(bp.CREATEDATE.max(), bp.ISSUED.max()).strftime('%B %-d, %Y')
     D = site_data(P, lu, asof)
     D['iz'] = vesting_rush(LINKED, P)
+    D['luw'] = lu_waits(P)
     live = P[~P.OUTCOME.str.startswith('Expired')]
     summ = {'asof': asof, 'projects': int(len(P)), 'gross_units_set_up': int(P.GROSS.sum()), 'net_units_set_up': int(P.NET.sum()),
             'gross_units_issued': int(live[live.FIRST_ISSUED.notna()].GROSS.sum()), 'net_units_issued': int(live[live.FIRST_ISSUED.notna()].NET.sum()),
