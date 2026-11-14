@@ -80,7 +80,7 @@ footer{border-top:3px solid var(--purple);margin-top:56px;padding:22px 0;font-si
 <div class="ctrl"><button class="tbtn" data-t="t2">Show table</button></div>
 <div class="legend" id="lg2"></div><div class="chart" id="c2"></div><div class="tw" id="t2" hidden></div></figure>
 <div class="call"><p id="callout" style="margin-bottom:10px"></p><p id="callout2"></p></div>
-<figure><figcaption>Subsidized share of all homes permitted, year by year</figcaption><div class="sub">Subsidized homes as a share of homes permitted each year, across projects of every size. Dark lines show the average for each period.</div>
+<figure><figcaption>Subsidized share of homes permitted in projects of five or more homes, year by year</figcaption><div class="sub">Subsidized homes as a share of homes permitted each year in projects of five or more homes. Projects of one to four homes are left out because they are privately funded. Dark lines show the average for each period.</div>
 <div class="ctrl"><button class="tbtn" data-t="t9">Show table</button></div>
 <div class="chart" id="c9"></div><div class="tw" id="t9" hidden></div></figure>
 <p id="subshare"></p>
@@ -333,8 +333,8 @@ drawWaits();
 function extras(){const live=D.p.filter(p=>!p[7]&&p[3]),sum=(a,b,g)=>live.filter(p=>p[3]>=a&&p[3]<=b&&(!g||g(p))).reduce((t,p)=>t+p[4],0);
   const per=(a,b)=>f(Math.round(sum(a,b)/(b-a+1)));
   $('voltext').innerHTML=`Homes permitted per year, all sizes: <strong>${per(2000,2009)}</strong> in 2000 to 2009, <strong>${per(2010,2019)}</strong> in 2010 to 2019, <strong>${per(2020,2023)}</strong> in 2020 to 2023 and <strong>${per(2024,2026)}</strong> in 2024 to 2026, with 2026 to date.`;
-  const sh=(a,b)=>pct(sum(a,b,p=>p[6]==2)/sum(a,b));
-  $('subshare').innerHTML=`Across projects of every size, subsidized homes were <strong>${sh(2010,2019)}</strong> of homes permitted in 2010 to 2019 and <strong>${sh(2024,2026)}</strong> in 2024 to 2026.`;
+  const sh=(a,b)=>pct(sum(a,b,p=>p[6]==2&&p[4]>=5)/sum(a,b,p=>p[4]>=5));
+  $('subshare').innerHTML=`In projects of five or more homes, subsidized homes were <strong>${sh(2010,2019)}</strong> of homes permitted in 2010 to 2019 and <strong>${sh(2024,2026)}</strong> in 2024 to 2026. Projects of one to four homes are privately funded and are not counted here.`;
   const nr=[0,1,2].map(k=>{const d=live.filter(p=>cls(p[4])==k&&p[0]>=0);return d.filter(p=>p[10]).reduce((t,p)=>t+p[4],0)/d.reduce((t,p)=>t+p[4],0)});
   $('todtext').innerHTML=`Since 2000, <strong>${pct(nr[2])}</strong> of homes in projects of ${T} or more units were permitted within 800 meters (about half a mile) of a MAX light rail line as it runs today, compared with ${pct(nr[1])} for projects of 5 to ${T-1} units and ${pct(nr[0])} for projects of 1 to 4 units.`;
   const W=D.luw;if(W){const m=v=>v==null?'':v.toFixed(1)+' months';
@@ -359,10 +359,10 @@ function drawWaits(){const W=D.luw;if(!W||!W.pts)return;const el=$('c8'),P=W.pts
   s+=`<line x1="${m.l}" x2="${Wd-m.r}" y1="${m.t+ih}" y2="${m.t+ih}" stroke="var(--ink2)"/><text class="ax" x="${m.l}" y="${m.t-3}">Months</text></svg><div class="tip"></div>`;el.innerHTML=s;const tip=el.querySelector('.tip');
   el.querySelectorAll('circle[data-i]').forEach(c=>{const p=P[+c.dataset.i];c.addEventListener('mousemove',e=>tipOn(el,tip,e,`<b>Permitted ${p[0]}</b><br><i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${CL[p[2]]};margin-right:6px"></i>${NM[p[2]]}, ${f(p[3])} homes<br>Land use filing to permit: <strong>${p[1].toFixed(1)} months</strong>`));c.addEventListener('mouseleave',()=>tip.style.display='none')});
   table('t8',['Permitted in','Projects','Median months, all','Middle half, months','Market-rate projects','Market-rate median','Subsidized projects','Subsidized median'],rows)}
-function drawSubShare(){const el=$('c9'),live=D.p.filter(p=>!p[7]&&p[3]),tot={},sub={};live.forEach(p=>{tot[p[3]]=(tot[p[3]]||0)+p[4];if(p[6]==2)sub[p[3]]=(sub[p[3]]||0)+p[4]});
+function drawSubShare(){const el=$('c9'),live=D.p.filter(p=>!p[7]&&p[3]&&p[4]>=5),tot={},sub={};live.forEach(p=>{tot[p[3]]=(tot[p[3]]||0)+p[4];if(p[6]==2)sub[p[3]]=(sub[p[3]]||0)+p[4]});
   const sh=YEARS.map(y=>tot[y]?(sub[y]||0)/tot[y]:0),PER=[[2000,2009],[2010,2019],[2020,2023],[2024,2026]];
-  const W=1040,H=320,m={l:54,r:14,t:18,b:34},iw=W-m.l-m.r,ih=H-m.t-m.b,n=YEARS.length,bw=iw/n,top=.5,yy=v=>m.t+ih-(Math.min(v,top)/top)*ih,xOf=yr=>{const i=YEARS.indexOf(yr);return i<0?null:m.l+i*bw};
-  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Subsidized homes as a share of all homes permitted, by year">`+bands(xOf,bw,m,ih,W);
+  const W=1040,H=320,m={l:54,r:14,t:18,b:34},iw=W-m.l-m.r,ih=H-m.t-m.b,n=YEARS.length,bw=iw/n,top=Math.max(.5,Math.ceil((Math.max(...sh)+.08)*10)/10),yy=v=>m.t+ih-(Math.min(v,top)/top)*ih,xOf=yr=>{const i=YEARS.indexOf(yr);return i<0?null:m.l+i*bw};
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Subsidized homes as a share of homes permitted in projects of five or more homes, by year">`+bands(xOf,bw,m,ih,W);
   for(let v=0;v<=top+1e-9;v+=.1)s+=`<line class="grid" x1="${m.l}" x2="${W-m.r}" y1="${yy(v)}" y2="${yy(v)}"/><text class="ax" x="${m.l-8}" y="${yy(v)+4}" text-anchor="end">${Math.round(v*100)}%</text>`;
   YEARS.forEach((y,i)=>{const h=yy(0)-yy(sh[i]);s+=`<rect x="${m.l+i*bw+2}" y="${yy(sh[i])}" width="${bw-4}" height="${Math.max(h,0)}" rx="3" fill="${C.small}"/>`+(i%2==0?`<text class="ax" x="${m.l+i*bw+bw/2}" y="${H-12}" text-anchor="middle">${y}${y==2026?'*':''}</text>`:'')});
   const rows=YEARS.map((y,i)=>[String(y),sub[y]||0,tot[y]||0,pct(sh[i])]);
@@ -370,8 +370,8 @@ function drawSubShare(){const el=$('c9'),live=D.p.filter(p=>!p[7]&&p[3]),tot={},
     s+=`<line x1="${x0}" x2="${x1}" y1="${yy(v)}" y2="${yy(v)}" stroke="#fff" stroke-width="6"/><line x1="${x0}" x2="${x1}" y1="${yy(v)}" y2="${yy(v)}" stroke="var(--ink)" stroke-width="2.5"/><text class="lab" x="${(x0+x1)/2}" y="${yy(v)-8}" text-anchor="middle" style="paint-order:stroke;stroke:#fff;stroke-width:4px">${a} to ${b}: ${pct(v)}</text>`;rows.push([a+' to '+b,u,t,pct(v)])});
   s+=`<line x1="${m.l}" x2="${W-m.r}" y1="${yy(0)}" y2="${yy(0)}" stroke="var(--ink2)"/>`;YEARS.forEach((y,i)=>{s+=`<rect data-i="${i}" x="${m.l+i*bw}" y="${m.t}" width="${bw}" height="${ih}" fill="transparent"/>`});
   s+=`</svg><div class="tip"></div>`;el.innerHTML=s;const tip=el.querySelector('.tip');
-  el.querySelectorAll('rect[data-i]').forEach(r=>{const i=+r.dataset.i,y=YEARS[i];r.addEventListener('mousemove',e=>tipOn(el,tip,e,`<b>${y}</b><br>Subsidized: <strong>${pct(sh[i])}</strong> of homes permitted<br>${f(sub[y]||0)} of ${f(tot[y]||0)} homes`));r.addEventListener('mouseleave',()=>tip.style.display='none')});
-  table('t9',['Year or period','Subsidized homes','All homes permitted','Subsidized share'],rows)}
+  el.querySelectorAll('rect[data-i]').forEach(r=>{const i=+r.dataset.i,y=YEARS[i];r.addEventListener('mousemove',e=>tipOn(el,tip,e,`<b>${y}</b><br>Subsidized: <strong>${pct(sh[i])}</strong> of homes permitted in projects of 5 or more<br>${f(sub[y]||0)} of ${f(tot[y]||0)} homes`));r.addEventListener('mouseleave',()=>tip.style.display='none')});
+  table('t9',['Year or period','Subsidized homes','Homes permitted in projects of 5 or more','Subsidized share'],rows)}
 $('asofm').textContent=D.asof.replace(/ \d+,/,''); // footer date follows the data: "November 10, 2026" -> "November 2026"
 // ---- approvals and duration (independent of threshold)
 (function(){const L=D.lu,yrs=[];for(let y=2002;y<=2026;y++)yrs.push(y);const by={};L.forEach(r=>by[r.y]=r);
