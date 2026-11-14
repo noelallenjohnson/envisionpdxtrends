@@ -166,7 +166,7 @@ const $=id=>document.getElementById(id);
 document.querySelectorAll('.asof').forEach(e=>e.textContent=D.asof);
 let T=75, basis='iss';
 const YEARS=[];for(let y=2000;y<=2026;y++)YEARS.push(y);
-const BANDS=[{a:2008,b:2009,label:'Financial crisis'},{a:2020,b:2020,label:'Pandemic'},{a:2022,b:2023,label:'Rates rise'}];
+const BANDS=[{a:2008,b:2009,label:'Financial crisis'},{a:2020,b:2020,label:'Pandemic'},{a:2022,b:2023,label:'High Inflation/Rates'}];
 // project fields: 0 x,1 y,2 year applied,3 year issued,4 gross,5 net,6 subsidy(1 market,2 subsidized),7 expired,8 year completed,9 months from permit application to permit (-1 none),10 within 800 m of MAX
 const cls=u=>u<=4?0:(u<T?1:2);
 function agg(){const idx=basis=='iss'?3:2;const A={};YEARS.forEach(y=>A[y]={y,c:[0,0,0],net:0,bm:0,bs:0,bmn:0,bsn:0});
@@ -178,7 +178,7 @@ function forecast(rows){ // from projects already filed and not yet issued
     return {y,fc:true,c:mid,lo:lo.reduce((a,b)=>a+b,0),hi:hi.reduce((a,b)=>a+b,0),bm:s[2]*.125*w,bs:s[3]*.75*w,bmlo:0,bmhi:s[2]*.25*w,bslo:s[3]*.6*w,bshi:s[3]*.9*w,pend:s}})}
 function legend(id,items){$(id).innerHTML=items.map(i=>`<span><i style="background:${i[1]}${i[2]?';opacity:.4':''}"></i>${i[0]}</span>`).join('')}
 function tipOn(el,tip,e,html){tip.innerHTML=html;tip.style.display='block';const b=el.getBoundingClientRect();let x=e.clientX-b.left+14;if(x>b.width-210)x=e.clientX-b.left-210;tip.style.left=x+'px';tip.style.top=(e.clientY-b.top-10)+'px'}
-function bands(xOf,bw,m,ih,W){return BANDS.map(b=>{const x0=xOf(b.a),x1=xOf(b.b)+bw;if(x0==null)return '';return `<rect x="${x0}" y="${m.t}" width="${x1-x0}" height="${ih}" fill="var(--band)"/><text class="bandl" x="${(x0+x1)/2}" y="${m.t+11}" text-anchor="middle">${b.label}</text>`}).join('')}
+function bands(xOf,bw,m,ih,W){return BANDS.map(b=>{const x0=xOf(b.a),x1=xOf(b.b)+bw;if(x0==null)return '';return `<rect x="${x0}" y="${m.t}" width="${x1-x0}" height="${ih}" fill="var(--band)"/><text class="bandl" y="${m.t+11}" text-anchor="middle">${(b.label.length*6.2>x1-x0+30&&b.label.includes('/')?[b.label.slice(0,b.label.indexOf('/')+1),b.label.slice(b.label.indexOf('/')+1)]:[b.label]).map((t,k)=>`<tspan x="${(x0+x1)/2}" dy="${k?13:0}">${t}</tspan>`).join('')}</text>`}).join('')}
 function stacked(el,rows,series,opt={}){
   const W=1040,H=380,m={l:54,r:14,t:18,b:34},iw=W-m.l-m.r,ih=H-m.t-m.b,n=rows.length,bw=iw/n;
   const max=Math.max(...rows.map(r=>Math.max(r.vals.reduce((a,b)=>a+b,0),r.hi||0)));const step=max>6000?2000:max>2500?1000:max>1200?500:250,top=Math.ceil(max/step)*step,y=v=>m.t+ih-(v/top)*ih;
